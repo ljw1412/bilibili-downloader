@@ -1,7 +1,7 @@
 import * as bilibiliHelper from './bilibili-helper'
 
 chrome.webRequest.onBeforeRequest.addListener(
-  (...data) => {
+  data => {
     console.log('onBeforeRequest', data)
   },
   {
@@ -12,7 +12,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 )
 
 chrome.webRequest.onBeforeSendHeaders.addListener(
-  (...data) => {
+  data => {
     console.log('onBeforeSendHeaders', data)
   },
   {
@@ -23,8 +23,16 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 )
 
 chrome.webRequest.onSendHeaders.addListener(
-  (...data) => {
+  data => {
+    if (data.tabId === -1) return
     console.log('onSendHeaders', data)
+    const headers: any = {}
+    data.requestHeaders.forEach(({ name, value }) => {
+      headers[name] = value
+    })
+    fetch(data.url, { headers })
+      .then(data => data.json())
+      .then(json => console.log(json))
   },
   {
     urls: ['*://*.bilibili.com/*playurl?*'],
@@ -45,7 +53,7 @@ chrome.webRequest.onResponseStarted.addListener(
 )
 
 chrome.webRequest.onCompleted.addListener(
-  (...data) => {
+  data => {
     console.log('onCompleted', data)
   },
   {

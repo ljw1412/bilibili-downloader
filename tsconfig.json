@@ -12,6 +12,6 @@
   "paths": {
     "@/*": ["src/*"]
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.vue", "src/**/manifest.json"],
   "exclude": ["node_modules"]
 }
