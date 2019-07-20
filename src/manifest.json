@@ -22,7 +22,7 @@
   "content_scripts": [
     {
       "all_frames": true,
-      "js": ["##[js]content##"],
+      "js": ["js/jquery.min.js", "js/content.js"],
       "matches": ["*://*.bilibili.com/video/av*", "*://*.bilibili.com/*/play*"]
     }
   ],

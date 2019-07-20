@@ -1,8 +1,10 @@
 const path = require('path')
+const webpack = require('webpack')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-const isProduction = true
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const isDevelopment = process.argv[3] !== 'production'
 
 const configList = [
   {
@@ -11,10 +13,10 @@ const configList = [
     template: './src/background/index.html',
     filename: 'html/background.html'
   },
-  {
-    name: 'content',
-    entry: './src/content/index.ts'
-  },
+  // {
+  //   name: 'content',
+  //   entry: './src/content/index.ts'
+  // },
   {
     name: 'option',
     entry: './src/option/index.ts',
@@ -74,7 +76,7 @@ module.exports = {
     })
     return entry
   },
-  devtool: 'inline-source-map',
+  devtool: 'hidden-source-map',
   plugins: [
     ...htmlPlugins,
     new CleanWebpackPlugin(),
@@ -83,9 +85,24 @@ module.exports = {
         from: './src/manifest.json',
         to: '',
         transform: generateManifest
+      },
+      {
+        from: './src/assets/jquery.min.js',
+        to: 'js'
+      },
+      {
+        from: './src/content/index.js',
+        to: 'js/content.js'
       }
     ])
   ],
+  optimization: {
+    minimizer: [
+      new UglifyJsPlugin({
+        sourceMap: isDevelopment
+      })
+    ]
+  },
   module: {
     rules: [
       {
@@ -96,13 +113,13 @@ module.exports = {
             loader: 'sass-loader',
             options: {
               indentedSyntax: true,
-              sourceMap: isProduction
+              sourceMap: isDevelopment
             }
           },
           scss: {
             loader: 'sass-loader',
             options: {
-              sourceMap: isProduction
+              sourceMap: isDevelopment
             }
           }
         }
