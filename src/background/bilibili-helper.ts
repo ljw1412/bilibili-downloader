@@ -1,7 +1,7 @@
 const tabs = {}
 
 export const parse = (message: any) => {
-  console.log(message)
+  console.log(message.data)
 }
 
 export const parseResponse = (response: any) => {

@@ -1,9 +1,11 @@
+import { logMessage } from './log'
 import * as bilibiliHelper from './bilibili-helper'
 
 chrome.extension.onMessage.addListener((message: any, sender: any) => {
-  console.log('onMessage', { message, sender })
   const tabId = sender.tab.id
-  if (message.website === 'bilibili') {
+  const website = message.website
+  logMessage(`website${website} tabId:${tabId}`, { message, sender })
+  if (website === 'bilibili') {
     bilibiliHelper.parse(message)
   }
 })
