@@ -1,13 +1,15 @@
-import { logMessage } from './log'
+import { logMessage, logSuccess } from './log'
 import * as bilibiliHelper from './bilibili-helper'
 
 chrome.extension.onMessage.addListener((message: any, sender: any) => {
   const tabId = sender.tab.id
   const website = message.website
   logMessage(`website${website} tabId:${tabId}`, { message, sender })
+  let result = {}
   if (website === 'bilibili') {
-    bilibiliHelper.parse(message)
+    result = bilibiliHelper.parse(message)
   }
+  logSuccess(`website${website} tabId:${tabId}`, result)
 })
 
 // chrome.webRequest.onBeforeRequest.addListener(

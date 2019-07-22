@@ -13,6 +13,8 @@ const baseLog = (
   console.log(`%c${type}%c${info}\n`, leftStyles, rightStyles, ...data)
 }
 
-const logMessage = baseLog('message', '#5eb7ff', '#fff', '#666', '#fff')
+const logMessage = baseLog('message', '#409EFF', '#fff', '#666', '#fff')
 
-export { logMessage }
+const logSuccess = baseLog('success', '#67C23A', '#fff', '#666', '#fff')
+
+export { logMessage, logSuccess }
