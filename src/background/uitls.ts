@@ -6,3 +6,13 @@ export function formatDuration(duration: number) {
   ]
   return list.filter(item => item > 0).join(':')
 }
+
+export function formatFileSize(size: number) {
+  const unitList = ['B', 'KB', 'MB', 'GB', 'PB']
+  let i = 0
+  while (size / 1024 > 1) {
+    size /= 1024
+    i++
+  }
+  return size.toFixed(2) + unitList[i]
+}

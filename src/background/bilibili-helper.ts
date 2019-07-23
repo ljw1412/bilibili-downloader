@@ -1,5 +1,5 @@
-import { formatDuration } from './uitls'
-const qualityMap: { [key: number]: string } = {
+import { formatDuration, formatFileSize } from './uitls'
+const videoQualityMap: { [key: number]: string } = {
   116: '1080P60',
   112: '1080P+',
   80: '1080P',
@@ -10,6 +10,10 @@ const qualityMap: { [key: number]: string } = {
   15: '360P',
   0: '自动'
 }
+const audioQualityMap: { [key: number]: string } = {
+  30280: '高',
+  30216: '中'
+}
 
 const tabs = {}
 
@@ -17,33 +21,61 @@ export const parse = (message: any) => {
   const palyinfo = message.data.data
   return parsePlayInfo(palyinfo)
 }
+/**
+ * 处理版本一的数据
+ * @param data
+ */
+const processVersion1 = (playinfo: any) => {}
 
-export const parseResponse = (response: any) => {
-  console.log(response)
-}
-
+/**
+ * 解析播放信息
+ * @param playinfo 播放信息
+ */
 export const parsePlayInfo = (playinfo: any) => {
   let videoList = [],
     audioList = [],
-    duration,
-    quality,
-    qualityStr,
+    duration: string,
+    quality: number,
+    qualityStr: string,
     version
   const dash = playinfo.dash
   const durl = playinfo.durl
   if (dash) {
     version = 2
-    videoList = dash.video
-    audioList = dash.audio
     quality = playinfo.quality
-    qualityStr = qualityMap[quality]
+    qualityStr = videoQualityMap[quality]
     duration = formatDuration(dash.duration || 0)
+    videoList = dash.video.map((item: any) => ({
+      url: item.baseUrl,
+      duration,
+      size: formatFileSize(item.bandwidth * 128),
+      quality: item.id,
+      qualityStr: videoQualityMap[item.id]
+    }))
+    audioList = dash.audio.map((item: any) => ({
+      url: item.baseUrl,
+      duration,
+      size: formatFileSize(item.bandwidth * 128),
+      quality: item.id,
+      qualityStr: audioQualityMap[item.id]
+    }))
   } else if (durl) {
     version = 1
-    videoList = durl
     quality = playinfo.quality
-    qualityStr = qualityMap[quality]
+    qualityStr = videoQualityMap[quality]
     duration = formatDuration(playinfo.timelength / 1000 || 0)
+    videoList = durl.map((item: any) => ({
+      order: item.order,
+      url: item.url,
+      duration: formatDuration(item.length),
+      size: formatFileSize(item.size),
+      quality,
+      qualityStr
+    }))
   }
   return { version, duration, quality, qualityStr, videoList, audioList }
+}
+
+export const parseResponse = (response: any) => {
+  console.log(response)
 }
