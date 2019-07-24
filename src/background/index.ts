@@ -1,7 +1,7 @@
 import { logMessage, logSuccess } from './log'
 import * as bilibiliHelper from './bilibili-helper'
 
-chrome.extension.onMessage.addListener((message: any, sender: any) => {
+chrome.extension.onMessage.addListener((message: Message, sender: any) => {
   const tabId = sender.tab.id
   const website = message.website
   logMessage(`website${website} tabId:${tabId}`, { message, sender })

@@ -17,7 +17,7 @@ const audioQualityMap: { [key: number]: string } = {
 
 const tabs = {}
 
-export const parse = (message: any) => {
+export const parse = (message: Message) => {
   const palyinfo = message.data.data
   return parsePlayInfo(palyinfo)
 }
@@ -31,13 +31,13 @@ const processVersion1 = (playinfo: any) => {}
  * 解析播放信息
  * @param playinfo 播放信息
  */
-export const parsePlayInfo = (playinfo: any) => {
-  let videoList = [],
-    audioList = [],
+export const parsePlayInfo = (playinfo: PlayInfo) => {
+  let videoList: OutMedia[] = [],
+    audioList: OutMedia[] = [],
     duration: string,
     quality: number,
     qualityStr: string,
-    version
+    version: number
   const dash = playinfo.dash
   const durl = playinfo.durl
   if (dash) {
