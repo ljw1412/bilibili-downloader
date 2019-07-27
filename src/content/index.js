@@ -1,32 +1,19 @@
-const matchList = {
-  bilibili: /\.bilibili\./
-}
-
-let website
-function matchWebsite() {
-  const keys = Object.keys(matchList)
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i]
-    if (matchList[key].test(location.host)) {
-      website = key
-      return true
-    }
-  }
-  return false
-}
+// 插件ID
+const extensionId = chrome.runtime.id
+// 获取插件id下的资源地址
+const getExtensionURL = chrome.extension.getURL
 
 ;(function() {
-  matchWebsite()
   parsePlayinfo()
 })()
 
-function sendMessage(action, data) {
-  chrome.extension.sendMessage({ action, data, website })
-}
+chrome.extension.onMessage.addListener((message, sender) => {
+  console.log(message)
+})
 
-// function sendMessage(action, data) {
-//   chrome.extension.sendMessage()
-// }
+function sendMessage(action, data) {
+  chrome.extension.sendMessage({ action, data })
+}
 
 function parsePlayinfo() {
   const playinfo_script = $('script:contains("__playinfo__")')

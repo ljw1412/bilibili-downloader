@@ -3,9 +3,9 @@ const baseStyles = 'font-size:12px;padding:1px 10px;font-weight:700;'
 const baseLog = (
   type: string,
   bgcolor?: string,
-  color?: string,
-  bgcolor2?: string,
-  color2?: string
+  color: string = '#fff',
+  bgcolor2: string = '#666',
+  color2: string = '#fff'
 ) => (info: string, ...data: any) => {
   const leftStyles = `${baseStyles};background-color:${bgcolor};border-radius:5px 0 0 5px;color:${color}`
   const rightStyles = `${baseStyles};background-color:${bgcolor2};border-radius:0 5px 5px 0;color:${color2}`
@@ -13,8 +13,8 @@ const baseLog = (
   console.log(`%c${type}%c${info}\n`, leftStyles, rightStyles, ...data)
 }
 
-const logMessage = baseLog('message', '#409EFF', '#fff', '#666', '#fff')
+export const message = baseLog('message', '#409EFF')
 
-const logSuccess = baseLog('success', '#67C23A', '#fff', '#666', '#fff')
+export const success = baseLog('success', '#67C23A')
 
-export { logMessage, logSuccess }
+export const error = baseLog('error', '#F56C6C')
