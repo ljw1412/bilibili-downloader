@@ -22,7 +22,7 @@
   "content_scripts": [
     {
       "all_frames": true,
-      "js": ["js/jquery.min.js", "js/content.js"],
+      "js": ["js/jquery.min.js", "js/vue.min.js", "js/content.js"],
       "matches": ["*://*.bilibili.com/video/av*", "*://*.bilibili.com/*/play*"]
     }
   ],
@@ -30,5 +30,8 @@
     "128": "img/icon.png"
   },
   "version": "##[config]version##",
-  "web_accessible_resources": []
+  "web_accessible_resources": [
+    "template/downloadView.html",
+    "css/downloadView.css"
+  ]
 }

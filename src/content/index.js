@@ -5,10 +5,12 @@ const getExtensionURL = chrome.extension.getURL
 
 ;(function() {
   parsePlayinfo()
+  addview()
 })()
 
 chrome.extension.onMessage.addListener((message, sender) => {
   console.log(message)
+  app.setData(message)
 })
 
 function sendMessage(action, data) {
@@ -23,4 +25,43 @@ function parsePlayinfo() {
     const playinfo = JSON.parse(vInfo)
     sendMessage('playinfo', playinfo)
   }
+}
+
+let app
+
+function addview() {
+  $('body').append('<div id="video-parser"></div>')
+  const cssURL = getExtensionURL('css/downloadView.css')
+  $('#video-parser').before(
+    `<link  rel="stylesheet" type="text/css" href="${cssURL}"/>`
+  )
+  $('#video-parser').load(
+    getExtensionURL('template/downloadView.html'),
+    (resonse, status, xhr) => {
+      if (status === 'success') {
+        console.log('添加下载界面成功！')
+        bindVue()
+      }
+    }
+  )
+}
+
+function bindVue() {
+  app = new Vue({
+    el: '#video-parser',
+    data() {
+      return {
+        isDisplayPopover: false,
+        data: {}
+      }
+    },
+    methods: {
+      onButtonClick() {
+        this.isDisplayPopover = !this.isDisplayPopover
+      },
+      setData(data) {
+        this.data = data
+      }
+    }
+  })
 }
