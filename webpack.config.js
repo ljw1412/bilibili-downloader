@@ -80,21 +80,24 @@ module.exports = {
   plugins: [
     ...htmlPlugins,
     new CleanWebpackPlugin(),
-    new CopyWebpackPlugin([
-      {
-        from: './src/manifest.json',
-        to: '',
-        transform: generateManifest
-      },
-      {
-        from: './src/assets/jquery.min.js',
-        to: 'js'
-      },
-      {
-        from: './src/content/index.js',
-        to: 'js/content.js'
-      }
-    ])
+    new CopyWebpackPlugin(
+      [
+        {
+          from: './src/manifest.json',
+          to: '',
+          transform: generateManifest
+        },
+        {
+          from: './src/static/',
+          to: ''
+        },
+        {
+          from: './src/content/index.js',
+          to: 'js/content.js'
+        }
+      ],
+      { copyUnmodified: true }
+    )
   ],
   optimization: {
     minimizer: [
