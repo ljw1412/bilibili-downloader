@@ -6,4 +6,20 @@
   <span v-if="!isDisplayPopover">下载<br />视频</span>
   <span v-else class="video-parser-button__close"></span>
 </div>
-<div v-if="isDisplayPopover" class="video-parser-popover">{{ data }}</div>
+<transition name="zoom-in-out">
+  <div v-if="isDisplayPopover" class="video-parser-popover">
+    <div class="video-parser-popover__header">{{ videoName }}</div>
+    <div class="video-parser-popover__content">{{ data }}</div>
+    <div class="video-parser-popover__action">
+      <div class="video-parser-popover__quality">
+        <div>当前清晰度</div>
+        <div style="text-align: center;">{{ data.qualityStr }}</div>
+      </div>
+      <div class="video-parser-popover__duration">
+        <div>总时长</div>
+        <div style="text-align: center;">{{ data.duration }}</div>
+      </div>
+      <div class="video-parser-popover__submit">下载</div>
+    </div>
+  </div>
+</transition>

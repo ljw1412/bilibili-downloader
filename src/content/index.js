@@ -4,12 +4,11 @@ const extensionId = chrome.runtime.id
 const getExtensionURL = chrome.extension.getURL
 
 ;(function() {
-  parsePlayinfo()
   addview()
 })()
 
 chrome.extension.onMessage.addListener((message, sender) => {
-  console.log(message)
+  getTitle()
   app.setData(message)
 })
 
@@ -17,6 +16,14 @@ function sendMessage(action, data) {
   chrome.extension.sendMessage({ action, data })
 }
 
+function getTitle() {
+  const title = $('.media-wrapper h1').text() || $('.video-title .tit').text()
+  app.setTitle(title)
+}
+
+/**
+ * 解析本地视频信息并发送给背景页
+ */
 function parsePlayinfo() {
   const playinfo_script = $('script:contains("__playinfo__")')
   if (playinfo_script.length) {
@@ -41,6 +48,7 @@ function addview() {
       if (status === 'success') {
         console.log('添加下载界面成功！')
         bindVue()
+        parsePlayinfo()
       }
     }
   )
@@ -52,15 +60,27 @@ function bindVue() {
     data() {
       return {
         isDisplayPopover: false,
-        data: {}
+        data: {},
+        title: '',
+        episodeName: ''
+      }
+    },
+    computed: {
+      videoName() {
+        return this.title + (this.episodeName ? ' ' + this.episodeName : '')
       }
     },
     methods: {
       onButtonClick() {
         this.isDisplayPopover = !this.isDisplayPopover
       },
-      setData(data) {
-        this.data = data
+      setTitle(title) {
+        console.log(title, this)
+
+        this.title = title
+      },
+      setData({ action, data }) {
+        if (action === 'list') this.data = data
       }
     }
   })
