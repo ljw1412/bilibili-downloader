@@ -4,7 +4,13 @@ export function formatDuration(duration: number) {
     ('0' + (Math.floor(duration / 60) % 60)).substr(-2),
     ('0' + Math.floor(duration % 60)).substr(-2)
   ]
-  return list.filter(item => item > 0).join(':')
+  let isStart = false
+  return list
+    .filter(item => {
+      if (item > 0) isStart = true
+      return isStart
+    })
+    .join(':')
 }
 
 export function formatFileSize(size: number) {
