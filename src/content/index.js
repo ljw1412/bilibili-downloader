@@ -70,6 +70,24 @@ function bindVue() {
       },
       version() {
         return this.data.version
+      },
+      videoList() {
+        return this.data.videoList || []
+      },
+      audioList() {
+        return this.data.audioList || []
+      },
+      selectVideoList() {
+        return this.videoList.filter(item => item.isActived)
+      },
+      selectAudioList() {
+        return this.audioList.filter(item => item.isActived)
+      },
+      selectVideoStr() {
+        return this.selectVideoList.map(item => item.qualityStr)
+      },
+      selectAudioStr() {
+        return this.selectAudioList.map(item => item.qualityStr)
       }
     },
     methods: {
@@ -77,12 +95,27 @@ function bindVue() {
         this.isDisplayPopover = !this.isDisplayPopover
       },
       setTitle(title) {
-        console.log(title, this)
-
         this.title = title
       },
       setData({ action, data }) {
-        if (action === 'list') this.data = data
+        if (action === 'list') {
+          if (data.version === 1) {
+            data.videoList.forEach(item => {
+              item.qualityStr = '分段' + item.order
+            })
+          }
+          this.data = data
+        }
+      },
+      onItemClick(item, list) {
+        if (this.version === 2) {
+          const isActived = item.isActived
+          list.forEach(item => {
+            this.$set(item, 'isActived', false)
+          })
+          item.isActived = isActived
+        }
+        this.$set(item, 'isActived', !item.isActived)
       }
     }
   })
