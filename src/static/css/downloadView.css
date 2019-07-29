@@ -78,7 +78,7 @@
   z-index: 98;
   width: 600px;
   border: 1px solid #e7e7e7;
-  border-radius: 10px 10px 10px 0;
+  border-radius: 2px 2px 2px 0;
   box-shadow: 0 6px 10px 0 hsla(0, 0%, 72.9%, 0.3);
   background-color: #fff;
   transform-origin: left bottom;
@@ -86,7 +86,7 @@
 }
 
 .video-parser-popover__header {
-  padding: 10px 15px;
+  padding: 10px;
   box-sizing: border-box;
   border-bottom: 1px solid #e7e7e7;
 }
@@ -96,6 +96,7 @@
   overflow-x: hidden;
   min-height: 150px;
   max-height: 350px;
+  padding: 10px;
 }
 
 .video-parser-popover__action {

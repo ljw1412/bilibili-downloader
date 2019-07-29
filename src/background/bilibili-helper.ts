@@ -67,7 +67,7 @@ export const parsePlayInfo = (playinfo: PlayInfo) => {
     videoList = durl.map((item: any) => ({
       order: item.order,
       url: item.url,
-      duration: formatDuration(item.length),
+      duration: formatDuration(item.length / 1000),
       size: formatFileSize(item.size),
       quality,
       qualityStr

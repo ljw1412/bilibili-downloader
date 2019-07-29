@@ -61,13 +61,15 @@ function bindVue() {
       return {
         isDisplayPopover: false,
         data: {},
-        title: '',
-        episodeName: ''
+        title: ''
       }
     },
     computed: {
       videoName() {
-        return this.title + (this.episodeName ? ' ' + this.episodeName : '')
+        return this.title
+      },
+      version() {
+        return this.data.version
       }
     },
     methods: {
