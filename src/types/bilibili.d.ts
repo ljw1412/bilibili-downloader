@@ -50,6 +50,7 @@ interface Message {
 
 interface OutMedia {
   order?: number
+  name?: string
   url: string
   duration: string
   size: string

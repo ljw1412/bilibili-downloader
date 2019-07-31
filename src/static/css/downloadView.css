@@ -94,19 +94,21 @@
 .video-parser-popover__content {
   overflow-y: auto;
   overflow-x: hidden;
-  min-height: 150px;
+  min-height: 100px;
   max-height: 350px;
   padding: 10px;
 }
 
 .video-parser-popover__type {
+  padding: 0 5px;
   color: #999;
 }
 
 .video-parser-popover__videos,
 .video-parser-popover__audios {
   display: flex;
-  padding: 5px 0;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 .video-parser-popover__item {
@@ -114,9 +116,10 @@
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  min-width: 70px;
+  min-width: 72px;
   padding: 3px 5px;
-  margin-left: 10px;
+  margin: 5px 5px 0 5px;
+  margin-top: 5px;
   border: 1px solid #e5e9f0;
   border-radius: 3px;
   text-align: center;
@@ -132,10 +135,6 @@
 .video-parser-popover__item:not(.video-parser-popover__item--actived):hover {
   background-color: #eaf4ff;
   border: 1px solid #73bed8;
-}
-
-.video-parser-popover__item:first-child {
-  margin-left: 0;
 }
 
 .video-parser-popover__action {

@@ -22,3 +22,9 @@ export function formatFileSize(size: number) {
   }
   return size.toFixed(2) + unitList[i]
 }
+
+export function getFileName(url: string) {
+  var str = url.split('?') //url按？分开
+  str = str[0].split('/') //按/分开
+  return str[str.length - 1].toLowerCase() //得到带后缀的名字
+}

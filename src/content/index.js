@@ -88,7 +88,7 @@ function bindVue() {
       },
       selectAudioStr() {
         return this.selectAudioList.map(item => item.qualityStr)
-      }
+      },
     },
     methods: {
       onButtonClick() {
