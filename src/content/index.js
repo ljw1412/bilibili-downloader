@@ -34,8 +34,17 @@ function parsePlayinfo() {
   }
 }
 
-let app
+function copyText(str) {
+  var text = $(
+    '<textarea style="width: 0;height: 0;" id="copy_tmp">' + str + '</textarea>'
+  )
+  $('body').append(text)
+  text.select()
+  document.execCommand('Copy')
+  $('#copy_tmp').remove()
+}
 
+let app
 function addview() {
   $('body').append('<div id="video-parser"></div>')
   const cssURL = getExtensionURL('css/downloadView.css')
@@ -77,18 +86,36 @@ function bindVue() {
       audioList() {
         return this.data.audioList || []
       },
+      // 被选中的视频列表
       selectVideoList() {
         return this.videoList.filter(item => item.isActived)
       },
+      // 被选中的音频列表
       selectAudioList() {
         return this.audioList.filter(item => item.isActived)
       },
+      // 被选中的视频名称
       selectVideoStr() {
         return this.selectVideoList.map(item => item.qualityStr)
       },
+      // 被选中的音频名称
       selectAudioStr() {
         return this.selectAudioList.map(item => item.qualityStr)
       },
+      code() {
+        if (this.version === 2) {
+          return this.selectVideoList
+            .concat(this.selectAudioList)
+            .map(
+              item =>
+                'aria2c -c --check-certificate=false --header="Origin: https://www.bilibili.com" --referer="https://www.bilibili.com"  --user-agent="Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4" -o ' +
+                `"${item.name}" -x 16 -s 16 "${item.url}`
+            )
+            .push('')
+            .join('\n')
+        }
+        return ''
+      }
     },
     methods: {
       onButtonClick() {
@@ -116,6 +143,9 @@ function bindVue() {
           item.isActived = isActived
         }
         this.$set(item, 'isActived', !item.isActived)
+      },
+      onDownloadClick() {
+        copyText(this.code)
       }
     }
   })

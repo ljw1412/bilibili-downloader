@@ -27,6 +27,7 @@
           </div>
         </div>
       </template>
+      {{code}}
     </div>
     <div class="video-parser-popover__action">
       <div class="video-parser-popover__quality">
@@ -41,7 +42,7 @@
         {{selectVideoStr}}
         {{selectAudioStr}}
       </div>
-      <div class="video-parser-popover__submit">下载</div>
+      <div class="video-parser-popover__submit" @click="onDownloadClick">下载</div>
     </div>
   </div>
 </transition>
