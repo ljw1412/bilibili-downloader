@@ -50,6 +50,7 @@ export const parsePlayInfo = (playinfo: PlayInfo) => {
       name: getFileName(item.baseUrl),
       ext: getExt(getFileName(item.baseUrl)),
       duration,
+      // 错误的
       size: formatFileSize(item.bandwidth * 128),
       quality: item.id,
       qualityStr: videoQualityMap[item.id]
@@ -59,6 +60,7 @@ export const parsePlayInfo = (playinfo: PlayInfo) => {
       name: getFileName(item.baseUrl),
       ext: getExt(getFileName(item.baseUrl)),
       duration,
+      // 错误的
       size: formatFileSize(item.bandwidth * 128),
       quality: item.id,
       qualityStr: audioQualityMap[item.id]
@@ -82,6 +84,16 @@ export const parsePlayInfo = (playinfo: PlayInfo) => {
   return { version, duration, quality, qualityStr, videoList, audioList }
 }
 
-export const parseResponse = (response: any) => {
-  console.log(response)
+export const parseRequest = (request: any) => {
+  const headers: Record<string, string> = {}
+  request.requestHeaders.forEach((item: Record<string, string>) => {
+    headers[item.name] = item.value
+  })
+
+  return fetch(request.url, {
+    headers,
+    credentials: 'same-origin'
+  })
+    .then(resp => resp.json())
+    .then(data => parsePlayInfo(data.result || data.data))
 }

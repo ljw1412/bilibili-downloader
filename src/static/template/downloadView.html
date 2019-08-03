@@ -8,7 +8,7 @@
     <div class="video-parser-popover__content">
       <div class="video-parser-popover__type">
         <span>视频</span>
-        <span class="video-parser-popover__select-all" @click="onSelectAllClick">全选</span>
+        <span v-if="version === 1" class="video-parser-popover__select-all" @click="onSelectAllClick">全选</span>
       </div>
       <div class="video-parser-popover__videos">
         <div v-for="(item,index) of videoList" :key="index" class="video-parser-popover__item"

@@ -1,6 +1,8 @@
 import * as log from './log'
 import * as bilibiliHelper from './bilibili-helper'
 
+const extensionId = chrome.runtime.id
+
 const matchList: { [key: string]: RegExp } = {
   bilibili: /\.bilibili\./
 }
@@ -20,6 +22,38 @@ function sendToTab(tabId: number, action: string, message?: any) {
   chrome.tabs.sendMessage(tabId, { action, data: message })
 }
 
+// 截取playurl api 并解析
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  request => {
+    const requestHeaders = request.requestHeaders
+    if (request.initiator && request.initiator.indexOf(extensionId) > -1) {
+      requestHeaders.push({
+        name: 'Referer',
+        value: 'https://www.bilibili.com'
+      })
+      requestHeaders.push({
+        name: 'Origin',
+        value: 'https://www.bilibili.com'
+      })
+      return { requestHeaders }
+    }
+    if (request.tabId != -1) {
+      const tabId = request.tabId
+      const website = matchWebsite(request.url)
+      log.message(`[api] website:${website} tabId:${tabId}`, request)
+      bilibiliHelper.parseRequest(request).then(result => {
+        log.success(`website:${website} tabId:${tabId}`, result)
+        sendToTab(tabId, 'list', result)
+      })
+    }
+  },
+  {
+    urls: ['*://*.bilibili.com/*playurl?*']
+  },
+  ['blocking', 'requestHeaders']
+)
+
+// 从页面获取播放信息并解析
 chrome.extension.onMessage.addListener((message: Message, sender: any) => {
   const tabId = sender.tab.id
   const website = matchWebsite(sender.url)
@@ -31,66 +65,3 @@ chrome.extension.onMessage.addListener((message: Message, sender: any) => {
   log.success(`website:${website} tabId:${tabId}`, result)
   sendToTab(tabId, 'list', result)
 })
-
-// chrome.webRequest.onBeforeRequest.addListener(
-//   data => {
-//     console.log('onBeforeRequest', data)
-//   },
-//   {
-//     urls: ['*://*.bilibili.com/*playurl?*'],
-//     types: ['object', 'other', 'xmlhttprequest']
-//   },
-//   ['requestBody']
-// )
-
-// chrome.webRequest.onBeforeSendHeaders.addListener(
-//   data => {
-//     console.log('onBeforeSendHeaders', data)
-//   },
-//   {
-//     urls: ['*://*.bilibili.com/*playurl?*'],
-//     types: ['object', 'other', 'xmlhttprequest']
-//   },
-//   ['requestHeaders']
-// )
-
-// chrome.webRequest.onSendHeaders.addListener(
-//   data => {
-//     if (data.tabId === -1) return
-//     console.log('onSendHeaders', data)
-//     const headers: any = {}
-//     data.requestHeaders.forEach(({ name, value }) => {
-//       headers[name] = value
-//     })
-//     fetch(data.url, { headers })
-//       .then(data => data.json())
-//       .then(json => console.log(json))
-//   },
-//   {
-//     urls: ['*://*.bilibili.com/*playurl?*'],
-//     types: ['object', 'other', 'xmlhttprequest']
-//   },
-//   ['requestHeaders']
-// )
-
-// chrome.webRequest.onResponseStarted.addListener(
-//   data => {
-//     bilibiliHelper.parseResponse(data)
-//   },
-//   {
-//     urls: ['*://*.bilibili.com/*playurl?*'],
-//     types: ['object', 'other', 'xmlhttprequest']
-//   },
-//   ['responseHeaders']
-// )
-
-// chrome.webRequest.onCompleted.addListener(
-//   data => {
-//     console.log('onCompleted', data)
-//   },
-//   {
-//     urls: ['*://*.bilibili.com/*playurl?*'],
-//     types: ['object', 'other', 'xmlhttprequest']
-//   },
-//   ['responseHeaders']
-// )

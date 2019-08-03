@@ -8,6 +8,7 @@ const getExtensionURL = chrome.extension.getURL
 })()
 
 chrome.extension.onMessage.addListener((message, sender) => {
+  console.log('video-parser:', message)
   getTitle()
   app.setData(message)
 })
@@ -103,19 +104,19 @@ function bindVue() {
         return this.selectAudioList.map(item => item.qualityStr).join(' ')
       },
       code() {
-        if (this.version === 2) {
-          const selectList = this.selectVideoList.concat(this.selectAudioList)
-          // 合并指令
-          let mergeCommand = 'ffmpeg '
-          let codeList = selectList.map(({ name, ext, url }) => {
-            const tsName = ext ? name.replace(ext, '.ts') : name + '.ts'
-            mergeCommand += `-i ${tsName} `
-            return `aria2c -c --check-certificate=false --header="Origin: https://www.bilibili.com" --referer="https://www.bilibili.com"  --user-agent="Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4" -o "${name}" -x 16 -s 16 "${url}\nffmpeg -y -i "${name}" -c copy -bsf:v h264_mp4toannexb -f mpegts ${tsName}\n`
-          })
-          mergeCommand += `-c copy "${this.safeVideoName}.mp4"\n`
-          if (selectList.length > 1) codeList.push(mergeCommand)
-          return codeList.join('\n')
-        }
+        // if (this.version === 2) {
+        const selectList = this.selectVideoList.concat(this.selectAudioList)
+        // 合并指令
+        let mergeCommand = 'ffmpeg '
+        let codeList = selectList.map(({ name, ext, url }) => {
+          const tsName = ext ? name.replace(ext, '.ts') : name + '.ts'
+          mergeCommand += `-i ${tsName} `
+          return `aria2c -c --check-certificate=false --header="Origin: https://www.bilibili.com" --referer="https://www.bilibili.com"  --user-agent="Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4" -o "${name}" -x 16 -s 16 "${url}\r\nffmpeg -y -i "${name}" -c copy -bsf:v h264_mp4toannexb -f mpegts ${tsName}\r\n`
+        })
+        mergeCommand += `-c copy "${this.safeVideoName}.mp4"\r\n`
+        if (selectList.length > 1) codeList.push(mergeCommand)
+        return codeList.join('\r\n')
+        // }
         return ''
       }
     },
