@@ -1,4 +1,4 @@
-import { formatDuration, formatFileSize, getFileName } from './uitls'
+import { formatDuration, formatFileSize, getFileName, getExt } from './uitls'
 const videoQualityMap: { [key: number]: string } = {
   116: '1080P60',
   112: '1080P+',
@@ -48,6 +48,7 @@ export const parsePlayInfo = (playinfo: PlayInfo) => {
     videoList = dash.video.map((item: any) => ({
       url: item.baseUrl,
       name: getFileName(item.baseUrl),
+      ext: getExt(getFileName(item.baseUrl)),
       duration,
       size: formatFileSize(item.bandwidth * 128),
       quality: item.id,
@@ -56,6 +57,7 @@ export const parsePlayInfo = (playinfo: PlayInfo) => {
     audioList = dash.audio.map((item: any) => ({
       url: item.baseUrl,
       name: getFileName(item.baseUrl),
+      ext: getExt(getFileName(item.baseUrl)),
       duration,
       size: formatFileSize(item.bandwidth * 128),
       quality: item.id,
@@ -69,6 +71,8 @@ export const parsePlayInfo = (playinfo: PlayInfo) => {
     videoList = durl.map((item: any) => ({
       order: item.order,
       url: item.url,
+      name: getFileName(item.url),
+      ext: getExt(getFileName(item.url)),
       duration: formatDuration(item.length / 1000),
       size: formatFileSize(item.size),
       quality,

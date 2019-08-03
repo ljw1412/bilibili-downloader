@@ -74,8 +74,8 @@ function bindVue() {
       }
     },
     computed: {
-      videoName() {
-        return this.title
+      safeVideoName() {
+        return this.title.replace(/[\\s\\\\\/:\\*\\?\\\"<>\\|]/g, '_')
       },
       version() {
         return this.data.version
@@ -96,31 +96,30 @@ function bindVue() {
       },
       // 被选中的视频名称
       selectVideoStr() {
-        return this.selectVideoList.map(item => item.qualityStr)
+        return this.selectVideoList.map(item => item.qualityStr).join(' ')
       },
       // 被选中的音频名称
       selectAudioStr() {
-        return this.selectAudioList.map(item => item.qualityStr)
+        return this.selectAudioList.map(item => item.qualityStr).join(' ')
       },
       code() {
         if (this.version === 2) {
-          return this.selectVideoList
-            .concat(this.selectAudioList)
-            .map(
-              item =>
-                'aria2c -c --check-certificate=false --header="Origin: https://www.bilibili.com" --referer="https://www.bilibili.com"  --user-agent="Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4" -o ' +
-                `"${item.name}" -x 16 -s 16 "${item.url}`
-            )
-            .push('')
-            .join('\n')
+          const selectList = this.selectVideoList.concat(this.selectAudioList)
+          // 合并指令
+          let mergeCommand = 'ffmpeg '
+          let codeList = selectList.map(({ name, ext, url }) => {
+            const tsName = ext ? name.replace(ext, '.ts') : name + '.ts'
+            mergeCommand += `-i ${tsName} `
+            return `aria2c -c --check-certificate=false --header="Origin: https://www.bilibili.com" --referer="https://www.bilibili.com"  --user-agent="Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4" -o "${name}" -x 16 -s 16 "${url}\nffmpeg -y -i "${name}" -c copy -bsf:v h264_mp4toannexb -f mpegts ${tsName}\n`
+          })
+          mergeCommand += `-c copy "${this.safeVideoName}.mp4"\n`
+          if (selectList.length > 1) codeList.push(mergeCommand)
+          return codeList.join('\n')
         }
         return ''
       }
     },
     methods: {
-      onButtonClick() {
-        this.isDisplayPopover = !this.isDisplayPopover
-      },
       setTitle(title) {
         this.title = title
       },
@@ -133,6 +132,14 @@ function bindVue() {
           }
           this.data = data
         }
+      },
+      onButtonClick() {
+        this.isDisplayPopover = !this.isDisplayPopover
+      },
+      onSelectAllClick() {
+        this.videoList.forEach(item => {
+          this.$set(item, 'isActived', true)
+        })
       },
       onItemClick(item, list) {
         if (this.version === 2) {

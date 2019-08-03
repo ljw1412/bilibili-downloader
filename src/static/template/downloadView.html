@@ -4,9 +4,12 @@
 </div>
 <transition name="zoom-in-out">
   <div v-if="isDisplayPopover" class="video-parser-popover">
-    <div class="video-parser-popover__header">{{ videoName }}</div>
+    <div class="video-parser-popover__header">{{ title }}</div>
     <div class="video-parser-popover__content">
-      <div class="video-parser-popover__type">视频</div>
+      <div class="video-parser-popover__type">
+        <span>视频</span>
+        <span class="video-parser-popover__select-all" @click="onSelectAllClick">全选</span>
+      </div>
       <div class="video-parser-popover__videos">
         <div v-for="(item,index) of videoList" :key="index" class="video-parser-popover__item"
           :class="{'video-parser-popover__item--actived':item.isActived}" :title="item.duration"
@@ -27,7 +30,6 @@
           </div>
         </div>
       </template>
-      {{code}}
     </div>
     <div class="video-parser-popover__action">
       <div class="video-parser-popover__quality">
@@ -38,9 +40,9 @@
         <div>总时长</div>
         <div style="text-align: center;">{{ data.duration }}</div>
       </div>
-      <div>
-        {{selectVideoStr}}
-        {{selectAudioStr}}
+      <div class="video-parser-popover__selected">
+        <div v-if="selectVideoStr">选择的视频：{{selectVideoStr}}</div>
+        <div v-if="selectAudioStr">选择的音频：{{selectAudioStr}}</div>
       </div>
       <div class="video-parser-popover__submit" @click="onDownloadClick">下载</div>
     </div>

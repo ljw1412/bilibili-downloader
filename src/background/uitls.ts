@@ -6,8 +6,8 @@ export function formatDuration(duration: number) {
   ]
   let isStart = false
   return list
-    .filter(item => {
-      if (item > 0) isStart = true
+    .filter((item, index) => {
+      if (item > 0 || index === 1) isStart = true
       return isStart
     })
     .join(':')
@@ -27,4 +27,12 @@ export function getFileName(url: string) {
   var str = url.split('?') //url按？分开
   str = str[0].split('/') //按/分开
   return str[str.length - 1].toLowerCase() //得到带后缀的名字
+}
+
+export function getExt(fileName: string) {
+  const nameList = fileName.split('.')
+  if (nameList.length == 1) return null
+  const ext = nameList[nameList.length - 1]
+  const finalExt = ext.match(/[0-9a-zA-Z]*/)
+  return '.' + finalExt[0]
 }

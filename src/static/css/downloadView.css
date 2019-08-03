@@ -94,14 +94,26 @@
 .video-parser-popover__content {
   overflow-y: auto;
   overflow-x: hidden;
-  min-height: 100px;
+  /* min-height: 100px; */
   max-height: 350px;
   padding: 10px;
 }
 
 .video-parser-popover__type {
+  margin-right: 5px;
+  font-size: 15px;
   padding: 0 5px;
   color: #999;
+}
+
+.video-parser-popover__select-all {
+  cursor: pointer;
+  font-size: 12px;
+  color: #ffa9c2;
+}
+
+.video-parser-popover__select-all:hover {
+  color: #fb7299;
 }
 
 .video-parser-popover__videos,
@@ -153,6 +165,11 @@
   padding: 0 10px;
   text-align: center;
   border-right: 1px solid #e7e7e7;
+}
+
+.video-parser-popover__selected {
+  position: absolute;
+  right: 90px;
 }
 
 .video-parser-popover__submit {
