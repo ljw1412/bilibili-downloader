@@ -71,7 +71,10 @@ function bindVue() {
       return {
         isDisplayPopover: false,
         data: {},
-        title: ''
+        title: '',
+        message: '',
+        isDisplayToast: false,
+        messageTimer: null
       }
     },
     computed: {
@@ -106,14 +109,22 @@ function bindVue() {
       code() {
         // if (this.version === 2) {
         const selectList = this.selectVideoList.concat(this.selectAudioList)
+        const tsNameList = []
         // 合并指令
         let mergeCommand = 'ffmpeg '
         let codeList = selectList.map(({ name, ext, url }) => {
           const tsName = ext ? name.replace(ext, '.ts') : name + '.ts'
+          tsNameList.push(tsName)
           mergeCommand += `-i ${tsName} `
-          return `aria2c -c --check-certificate=false --header="Origin: https://www.bilibili.com" --referer="https://www.bilibili.com"  --user-agent="Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4" -o "${name}" -x 16 -s 16 "${url}\r\nffmpeg -y -i "${name}" -c copy -bsf:v h264_mp4toannexb -f mpegts ${tsName}\r\n`
+          return `aria2c -c --check-certificate=false --header="Origin: https://www.bilibili.com" --referer="https://www.bilibili.com"  --user-agent="Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4" -o "${name}" -x 16 -s 16 "${url}"\r\nffmpeg -y -i "${name}" -c copy -bsf:v h264_mp4toannexb -f mpegts ${tsName}\r\n`
         })
         mergeCommand += `-c copy "${this.safeVideoName}.mp4"\r\n`
+        if (this.version === 1) {
+          const tsListStr = tsNameList.join('|')
+          mergeCommand = `ffmpeg -i "concat:${tsListStr}" -c copy "${
+            this.safeVideoName
+          }.mp4"\n`
+        }
         if (selectList.length > 1) codeList.push(mergeCommand)
         return codeList.join('\r\n')
         // }
@@ -152,8 +163,18 @@ function bindVue() {
         }
         this.$set(item, 'isActived', !item.isActived)
       },
+      setMessageTimer() {
+        this.isDisplayToast = true
+        if (this.messageTimer) clearTimeout(this.messageTimer)
+        this.messageTimer = setTimeout(() => {
+          this.isDisplayToast = false
+          this.messageTimer = null
+        }, 3000)
+      },
       onDownloadClick() {
         copyText(this.code)
+        this.message = '下载指令已经复制到剪贴板！'
+        this.setMessageTimer()
       }
     }
   })
