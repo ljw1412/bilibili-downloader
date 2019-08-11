@@ -74,7 +74,8 @@ function bindVue() {
         title: '',
         message: '',
         isDisplayToast: false,
-        messageTimer: null
+        messageTimer: null,
+        writableStream: null
       }
     },
     computed: {
@@ -163,7 +164,8 @@ function bindVue() {
         }
         this.$set(item, 'isActived', !item.isActived)
       },
-      setMessageTimer() {
+      showToast(msg) {
+        this.message = msg
         this.isDisplayToast = true
         if (this.messageTimer) clearTimeout(this.messageTimer)
         this.messageTimer = setTimeout(() => {
@@ -172,9 +174,33 @@ function bindVue() {
         }, 3000)
       },
       onDownloadClick() {
+        if (!this.selectAudioList.length && !this.selectVideoList.length) {
+          this.showToast('请选择需要下载的片段')
+          return
+        }
         copyText(this.code)
-        this.message = '下载指令已经复制到剪贴板！'
-        this.setMessageTimer()
+        this.showToast('下载指令已经复制到剪贴板！')
+        // TODO : 本地下载
+        if (this.version === 1) {
+          try {
+            this.writableStream = new WritableStream()
+            console.log(this.selectVideoList)
+            // fetch(this.selectVideoList[0].url.replace(/^https?/, 'https'), {
+            //   method: 'GET',
+            //   headers: {},
+            //   mode: 'cors',
+            //   cache: 'default',
+            //   referrerPolicy: 'no-referrer-when-downgrade'
+            // }).then(data => {
+            //   window.rrr = data
+            //   if (data.body instanceof ReadableStream) {
+            //     console.log(data.body)
+            //   }
+            // })
+          } catch (err) {
+            console.error('浏览器不支持 WritableStream')
+          }
+        }
       }
     }
   })
