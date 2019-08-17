@@ -55,6 +55,7 @@ interface OutMedia {
   url: string
   duration: string
   size: string
+  bytes?: number
   quality: number
   qualityStr: string
 }

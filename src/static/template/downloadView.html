@@ -14,7 +14,8 @@
         <div v-for="(item,index) of videoList" :key="index" class="video-parser-popover__item"
           :class="{'video-parser-popover__item--actived':item.isActived}" :title="item.duration"
           @click="onItemClick(item, videoList)">
-          <span>{{ item.qualityStr }}</span>
+          <span style="z-index: 1;" :style="item.progress===100?'color:#fff':''">{{ item.qualityStr }}</span>
+          <span class="video-parser-popover__download-progress" :style="{right:(100 - item.progress)+'%'}"></span>
           <template v-else>
             <span>{{ item.size }}</span>
           </template>
@@ -40,11 +41,20 @@
         <div>总时长</div>
         <div style="text-align: center;">{{ data.duration }}</div>
       </div>
-      <div class="video-parser-popover__selected">
+      <div v-if="version !== 1" class="video-parser-popover__selected"
+        :style="{'max-width': version === 1 ? '240px':'320px'}">
         <div v-if="selectVideoStr">选择的视频：{{selectVideoStr}}</div>
         <div v-if="selectAudioStr">选择的音频：{{selectAudioStr}}</div>
       </div>
-      <div class="video-parser-popover__submit" @click="onDownloadClick">下载</div>
+      <div class="video-parser-popover__button">
+        <div v-if="version === 1 && videoList.length > 1"
+          class="video-parser-popover__submit video-parser-popover__submit--blue" @click="onMergeDownloadClick">
+          <span>合并下载</span>
+        </div>
+        <div class="video-parser-popover__submit" @click="onDownloadClick">
+          <span>下载选中</span>
+        </div>
+      </div>
     </div>
   </div>
 </transition>

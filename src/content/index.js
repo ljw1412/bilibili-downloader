@@ -64,6 +64,59 @@ function addview() {
   )
 }
 
+function isFetchProgressSupported() {
+  return (
+    typeof Response !== 'undefined' && typeof ReadableStream !== 'undefined'
+  )
+}
+// fetch 进度条功能
+const fetchProgress = ({
+  defaultSize = 0,
+  onProgress = () => {}
+}) => response => {
+  if (!isFetchProgressSupported()) {
+    return response
+  }
+  const { body, headers } = response
+
+  const reader = body.getReader()
+  const contentLength = headers.get('content-length') || defaultSize
+  let bytesReceived = 0
+  let progress = 0
+
+  return new Promise((resolve, reject) => {
+    const stream = new ReadableStream({
+      start(controller) {
+        function push() {
+          reader
+            .read()
+            .then(({ done, value }) => {
+              if (done) {
+                controller.close()
+                onProgress(1)
+                resolve(new Response(stream, { headers }))
+              }
+              if (value) {
+                bytesReceived += value.length
+
+                if (contentLength) {
+                  progress = bytesReceived / contentLength
+                }
+                onProgress(progress)
+              }
+              controller.enqueue(value)
+              push()
+            })
+            .catch(err => {
+              reject(err)
+            })
+        }
+        push()
+      }
+    })
+  })
+}
+
 function bindVue() {
   app = new Vue({
     el: '#video-parser',
@@ -74,8 +127,7 @@ function bindVue() {
         title: '',
         message: '',
         isDisplayToast: false,
-        messageTimer: null,
-        writableStream: null
+        messageTimer: null
       }
     },
     computed: {
@@ -98,6 +150,10 @@ function bindVue() {
       // 被选中的音频列表
       selectAudioList() {
         return this.audioList.filter(item => item.isActived)
+      },
+      // 下载完成的视频列表
+      downloadedVideoList() {
+        return this.videoList.filter(item => item.isDownloaded)
       },
       // 被选中的视频名称
       selectVideoStr() {
@@ -141,6 +197,11 @@ function bindVue() {
           if (data.version === 1) {
             data.videoList.forEach(item => {
               item.qualityStr = '分段' + item.order
+              item.isDownloading = false
+              item.isDownloaded = false
+              item.isFail = false
+              item.progress = ''
+              item.blob = null
             })
           }
           this.data = data
@@ -164,6 +225,7 @@ function bindVue() {
         }
         this.$set(item, 'isActived', !item.isActived)
       },
+      // 显示消息气泡
       showToast(msg) {
         this.message = msg
         this.isDisplayToast = true
@@ -173,33 +235,72 @@ function bindVue() {
           this.messageTimer = null
         }, 3000)
       },
+      // 开始下载
+      download(list, onComplete = () => {}) {
+        list.forEach(video => {
+          if (video.isDownloading) return
+          video.isDownloading = true
+          fetch(video.url.replace(/^https?/, 'https'), {
+            method: 'GET',
+            headers: {},
+            mode: 'cors',
+            cache: 'default',
+            referrerPolicy: 'no-referrer-when-downgrade'
+          })
+            .then(
+              fetchProgress({
+                defaultSize: video.bytes || 0,
+                onProgress: progress => {
+                  if (progress > 1) progress = 1
+                  video.progress = progress * 100
+                }
+              })
+            )
+            .then(response => response.blob())
+            .then(blob => {
+              onComplete(blob, video)
+              video.isDownloading = false
+            })
+            .catch(error => {
+              console.error(error)
+              this.showToast('下载出错了/(ㄒoㄒ)/~~')
+              video.isFail = true
+              video.isDownloading = false
+            })
+        })
+      },
+      // 点击合并下载
+      onMergeDownloadClick() {
+        this.download(this.videoList, (blob, video) => {
+          video.blob = blob
+          video.isDownloaded = true
+        })
+      },
+      // 点击选择下载
       onDownloadClick() {
         if (!this.selectAudioList.length && !this.selectVideoList.length) {
           this.showToast('请选择需要下载的片段')
           return
         }
-        copyText(this.code)
-        this.showToast('下载指令已经复制到剪贴板！')
-        // TODO : 本地下载
         if (this.version === 1) {
-          try {
-            this.writableStream = new WritableStream()
-            console.log(this.selectVideoList)
-            // fetch(this.selectVideoList[0].url.replace(/^https?/, 'https'), {
-            //   method: 'GET',
-            //   headers: {},
-            //   mode: 'cors',
-            //   cache: 'default',
-            //   referrerPolicy: 'no-referrer-when-downgrade'
-            // }).then(data => {
-            //   window.rrr = data
-            //   if (data.body instanceof ReadableStream) {
-            //     console.log(data.body)
-            //   }
-            // })
-          } catch (err) {
-            console.error('浏览器不支持 WritableStream')
-          }
+          this.download(this.selectVideoList, (blob, video) => {
+            saveAs(blob, video.name)
+          })
+        } else if (this.version === 2) {
+          copyText(this.code)
+          this.showToast('下载指令已经复制到剪贴板！')
+        }
+      }
+    },
+    watch: {
+      downloadedVideoList(list) {
+        if (list.length === 0) return
+        if (list.length === this.videoList.length) {
+          this.showToast('正在合并中，请稍后……')
+          FLV.mergeBlobs(list.map(item => item.blob)).then(mergeBlob => {
+            saveAs(mergeBlob, this.safeVideoName + list[0].ext)
+            this.showToast('合并完成！请慢用(｡･ω･｡)')
+          })
         }
       }
     }

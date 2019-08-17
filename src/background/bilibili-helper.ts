@@ -77,6 +77,7 @@ export const parsePlayInfo = (playinfo: PlayInfo) => {
       ext: getExt(getFileName(item.url)),
       duration: formatDuration(item.length / 1000),
       size: formatFileSize(item.size),
+      bytes: item.size,
       quality,
       qualityStr
     }))
