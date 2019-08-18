@@ -238,7 +238,7 @@ function bindVue() {
       // 开始下载
       download(list, onComplete = () => {}) {
         list.forEach(video => {
-          if (video.isDownloading) return
+          if (video.isDownloading || (video.isDownloaded && video.blob)) return
           video.isDownloading = true
           fetch(video.url.replace(/^https?/, 'https'), {
             method: 'GET',
