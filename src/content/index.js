@@ -18,7 +18,7 @@ function sendMessage(action, data) {
 }
 
 function getTitle() {
-  const title = $('.media-wrapper h1').text() || $('.video-title .tit').text()
+  let title = $('.media-wrapper h1').text() || $('.video-title .tit').text()
   if ($('#multi_page').length && $('.list-box').length) {
     const subTitle = $('.list-box li.on a').attr('title')
     if (subTitle) title += subTitle
