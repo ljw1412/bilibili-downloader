@@ -22,13 +22,7 @@
   "content_scripts": [
     {
       "all_frames": true,
-      "js": [
-        "js/jquery.min.js",
-        "js/fileSaver.min.js",
-        "js/flvUtils.js",
-        "js/vue.min.js",
-        "js/content.js"
-      ],
+      "js": ["js/jquery.min.js", "js/content.js"],
       "matches": ["*://*.bilibili.com/video/av*", "*://*.bilibili.com/*/play*"]
     }
   ],
