@@ -1,5 +1,5 @@
 import * as log from './log'
-import * as bilibiliHelper from './bilibili-helper'
+import * as bilibiliHelper from './bilibili'
 
 const extensionId = chrome.runtime.id
 
@@ -54,14 +54,16 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 )
 
 // 从页面获取播放信息并解析
-chrome.extension.onMessage.addListener((message: Message, sender: any) => {
-  const tabId = sender.tab.id
-  const website = matchWebsite(sender.url)
-  log.message(`website:${website} tabId:${tabId}`, { message, sender })
-  let result: any = {}
-  if (website === 'bilibili') {
-    result = bilibiliHelper.parse(message)
+chrome.extension.onMessage.addListener(
+  (message: common.Message, sender: any) => {
+    const tabId = sender.tab.id
+    const website = matchWebsite(sender.url)
+    log.message(`website:${website} tabId:${tabId}`, { message, sender })
+    let result: any = {}
+    if (website === 'bilibili') {
+      result = bilibiliHelper.parse(message)
+    }
+    log.success(`website:${website} tabId:${tabId}`, result)
+    sendToTab(tabId, 'list', result)
   }
-  log.success(`website:${website} tabId:${tabId}`, result)
-  sendToTab(tabId, 'list', result)
-})
+)

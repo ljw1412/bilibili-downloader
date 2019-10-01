@@ -1,6 +1,5 @@
 declare namespace chrome.extension {
   export function sendMessage(
-    extensionId: string,
     message: any,
     callback?: (response: any) => void
   ): void
