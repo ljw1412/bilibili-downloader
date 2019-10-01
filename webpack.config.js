@@ -13,10 +13,10 @@ const configList = [
     template: './src/background/index.html',
     filename: 'html/background.html'
   },
-  // {
-  //   name: 'content',
-  //   entry: './src/content/index.ts'
-  // },
+  {
+    name: 'content',
+    entry: './src/content/index.ts'
+  },
   {
     name: 'option',
     entry: './src/option/index.ts',
@@ -90,10 +90,6 @@ module.exports = {
         {
           from: './src/static/',
           to: ''
-        },
-        {
-          from: './src/content/index.js',
-          to: 'js/content.js'
         }
       ],
       { copyUnmodified: true }
@@ -129,8 +125,19 @@ module.exports = {
       },
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        use: ['babel-loader', 'ts-loader'],
         include: [path.resolve(__dirname, 'src')]
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env'],
+            plugins: ['@babel/plugin-transform-runtime']
+          }
+        }
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
