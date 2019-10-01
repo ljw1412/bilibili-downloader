@@ -310,32 +310,3 @@ function bindVue() {
     }
   })
 }
-
-// TODO: bilibili Comic.
-// const getHashKey = (episodeId, seasonId) => {
-//   const u8Array = new Uint8Array(new ArrayBuffer(8))
-//   u8Array[0] = episodeId
-//   u8Array[1] = episodeId >> 8
-//   u8Array[2] = episodeId >> 16
-//   u8Array[3] = episodeId >> 24
-//   u8Array[4] = seasonId
-//   u8Array[5] = seasonId >> 8
-//   u8Array[6] = seasonId >> 16
-//   u8Array[7] = seasonId >> 24
-//   return u8Array
-// }
-
-// unhashContent = function() {
-//   for (var t = 0, e = indexData.length; t < e; t++)
-//     indexData[t] = indexData[t] ^ hashKey[t % 8]
-// }
-
-// str = atob(
-//   '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'
-// )
-
-// var arr = []
-// for (var i = 0, j = str.length; i < j; ++i) {
-//   arr[i] = str.charCodeAt(i)
-// }
-// uint = new Uint8Array(arr)
