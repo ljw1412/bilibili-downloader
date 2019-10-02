@@ -3,6 +3,12 @@ import * as bilibiliHelper from './bilibili'
 
 const extensionId = chrome.runtime.id
 
+const cache: Record<any, any> = {}
+// 可视化缓存
+window.printCache = () => {
+  console.log(cache)
+}
+
 const matchList: { [key: string]: RegExp } = {
   bilibili: /\.bilibili\./
 }
@@ -43,6 +49,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
       bilibiliHelper.parseRequest(request).then(result => {
         log.success(`website:${website} tabId:${tabId}`, result)
         sendToTab(tabId, 'list', result)
+        cache[tabId] = result
       })
     }
   },
@@ -55,14 +62,32 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 // 从页面获取播放信息并解析
 chrome.extension.onMessage.addListener(
   (message: common.Message, sender: any) => {
+    if (!message.action) throw new TypeError('message中必须有action字段')
     const tabId = sender.tab.id
     const website = matchWebsite(sender.url)
-    log.message(`website:${website} tabId:${tabId}`, { message, sender })
-    let result: any = {}
-    if (website === 'bilibili') {
-      result = bilibiliHelper.parse(message)
+    log.message(`[${message.action}] website:${website} tabId:${tabId}`, {
+      message,
+      sender
+    })
+    switch (message.action) {
+      case 'playinfo':
+        let result: any = {}
+        if (website === 'bilibili') {
+          result = bilibiliHelper.parse(message)
+        }
+        log.success(`website:${website} tabId:${tabId}`, result)
+        sendToTab(tabId, 'list', result)
+        break
+      case 'ready':
+        if (cache[tabId]) sendToTab(tabId, 'list', cache[tabId])
+        break
+      default:
+        console.log(`暂时没有处理该类型[${message.action}]的方法`)
+        break
     }
-    log.success(`website:${website} tabId:${tabId}`, result)
-    sendToTab(tabId, 'list', result)
   }
 )
+
+chrome.tabs.onRemoved.addListener((tabId, moveInfo) => {
+  if (cache[tabId]) delete cache[tabId]
+})
