@@ -1,3 +1,16 @@
+// 插件ID
+export const extensionId = chrome.runtime.id
+// 获取插件id下的资源地址
+export const getExtensionURL = chrome.extension.getURL
+// 向背景页发送消息
+export function sendMessage(
+  action: string,
+  data?: any,
+  callback?: (response: any) => void
+) {
+  chrome.extension.sendMessage({ action, data }, callback)
+}
+
 export function copyText(str: string) {
   var text = $(
     '<textarea style="width: 0;height: 0;" id="copy_tmp">' + str + '</textarea>'
