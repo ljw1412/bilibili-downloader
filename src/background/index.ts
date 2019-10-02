@@ -22,19 +22,18 @@ function sendToTab(tabId: number, action: string, message?: any) {
   chrome.tabs.sendMessage(tabId, { action, data: message })
 }
 
+function appendHeader(headers: any[], name: string, value: string) {
+  headers.push({ name, value })
+}
+
 // 截取playurl api 并解析
 chrome.webRequest.onBeforeSendHeaders.addListener(
   request => {
     const requestHeaders = request.requestHeaders
+    // 如果为插件请求添加 Referer，Origin
     if (request.initiator && request.initiator.indexOf(extensionId) > -1) {
-      requestHeaders.push({
-        name: 'Referer',
-        value: 'https://www.bilibili.com'
-      })
-      requestHeaders.push({
-        name: 'Origin',
-        value: 'https://www.bilibili.com'
-      })
+      appendHeader(requestHeaders, 'Referer', 'https://www.bilibili.com')
+      appendHeader(requestHeaders, 'Origin', 'https://www.bilibili.com')
       return { requestHeaders }
     }
     if (request.tabId != -1) {
