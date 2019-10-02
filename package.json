@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ljw1412/bilibili-downloader.git"
+    "url": "git+https://github.com/ljw1412/video-parser.git"
   },
   "author": "ljw1412",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ljw1412/bilibili-downloader/issues"
+    "url": "https://github.com/ljw1412/video-parser/issues"
   },
-  "homepage": "https://github.com/ljw1412/bilibili-downloader#readme",
+  "homepage": "https://github.com/ljw1412/video-parser#readme",
   "dependencies": {
     "file-saver": "^2.0.2",
     "jquery": "^3.4.1",
