@@ -48,7 +48,10 @@ export default class Bilibili {
       const playinfo = JSON.parse(vInfo)
       sendMessage('playinfo', playinfo)
     } else {
-      sendMessage('ready')
+      this.app.setTitle(this.getTitle())
+      setTimeout(() => {
+        sendMessage('ready')
+      }, 3000)
     }
   }
   /**
