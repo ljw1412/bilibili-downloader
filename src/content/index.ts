@@ -1,5 +1,8 @@
 import Bilibili from './bilibili'
 const bilibili = new Bilibili()
+;(function() {
+  bilibili.init()
+})()
 
 chrome.extension.onMessage.addListener(
   (message: bilibili.ProcessedData, sender: chrome.runtime.MessageSender) => {
@@ -7,6 +10,3 @@ chrome.extension.onMessage.addListener(
     bilibili.setData(message)
   }
 )
-;(function() {
-  bilibili.init()
-})()
