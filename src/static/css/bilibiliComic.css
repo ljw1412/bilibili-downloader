@@ -1,3 +1,22 @@
+#download-all {
+  width: 144px;
+  height: 44px;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: #fff;
+  padding: 10px 20px;
+  margin-left: 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+#download-all:hover {
+  border-color: rgba(0, 0, 0, 0.34);
+}
 .download-button {
   position: absolute;
   right: 0;

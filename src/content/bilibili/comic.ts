@@ -3,14 +3,18 @@ import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 
 export default class BilibiliComic {
+  baseUrl = 'https://manga.bilibili.com/twirp/comic.v1.Comic'
   comicName: string
+  list: { name: string; urls: string[] }[] = []
 
   constructor() {}
 
   init() {
     const _this = this
     setTimeout(() => {
+      const downloadAllButton = $('<button id="download-all">一键下载</button>')
       this.comicName = $('.manga-info .manga-title').text()
+      $('.manga-info .action-buttons').append(downloadAllButton)
       $('.episode-list .list-data .list-item').each(function() {
         if (!$(this).find('.locked').length) {
           $(this)
@@ -32,39 +36,54 @@ export default class BilibiliComic {
 
       $('.download-button').click(function(e) {
         e.stopPropagation()
-        console.log($(this))
-
         const data = $(this)
           .parent('.list-item')
           .data('bili-manga-msg')
 
-        if (parent) {
+        if (data) {
           const epName = $(this)
-            .parent('.list-item')
-            .find('.short_title')
+            .siblings('.short-title')
             .text()
-          console.log(data, epName)
-
-          _this.fetchIndex(epName, data.manga_id, Number(data.manga_num))
+          console.log(epName, data)
+          _this.fetchIndex(epName, data.manga_id, Number(data.manga_num), false)
         }
+      })
+
+      downloadAllButton.click(() => {
+        const list: Record<string, any>[] = []
+        $('.list-item .download-button')
+          .parent('.list-item')
+          .each(function() {
+            const name = $(this)
+              .find('.short-title')
+              .text()
+            list.push(Object.assign({ name }, $(this).data('bili-manga-msg')))
+          })
+        console.log(list)
+
+        Promise.all(
+          list.map(({ name, manga_id, manga_num }) => {
+            return this.fetchIndex(name, manga_id, Number(manga_num), true)
+          })
+        ).then(() => {
+          // 目前使用多个压缩包的形式，如果用一个压缩包会浏览器卡死
+          this.downloadAll(true)
+        })
       })
     }, 300)
   }
 
   setData() {}
 
-  fetchIndex(epName: string, comic_id: number, ep_id: number) {
-    fetch(
-      'https://manga.bilibili.com/twirp/comic.v1.Comic/GetImageIndex?device=pc&platform=web',
-      {
-        method: 'Post',
-        body: JSON.stringify({ ep_id }),
-        headers: {
-          'content-type': 'application/json'
-        },
-        credentials: 'same-origin'
-      }
-    )
+  fetchIndex(epName: string, comic_id: number, ep_id: number, isAll: boolean) {
+    return fetch(`${this.baseUrl}/GetImageIndex?device=pc&platform=web`, {
+      method: 'Post',
+      body: JSON.stringify({ ep_id }),
+      headers: {
+        'content-type': 'application/json'
+      },
+      credentials: 'same-origin'
+    })
       .then(response => response.json())
       .then(({ data }) => data.host + data.path)
       .then(fetch)
@@ -88,7 +107,11 @@ export default class BilibiliComic {
         )
       )
       .then(data => {
-        this.downloadZip(data, epName)
+        if (isAll) {
+          this.list.push({ name: epName, urls: data })
+        } else {
+          this.download(data, epName)
+        }
       })
       .catch(error => {
         console.error(error)
@@ -96,39 +119,53 @@ export default class BilibiliComic {
   }
 
   fetchImageList(urlList: string[]) {
-    return fetch(
-      'https://manga.bilibili.com/twirp/comic.v1.Comic/ImageToken?device=pc&platform=web',
-      {
-        method: 'Post',
-        body: JSON.stringify({ urls: JSON.stringify(urlList) }),
-        headers: {
-          'content-type': 'application/json'
-        },
-        credentials: 'same-origin'
-      }
-    ).then(response => response.json())
+    return fetch(`${this.baseUrl}/ImageToken?device=pc&platform=web`, {
+      method: 'Post',
+      body: JSON.stringify({ urls: JSON.stringify(urlList) }),
+      headers: {
+        'content-type': 'application/json'
+      },
+      credentials: 'same-origin'
+    }).then(response => response.json())
   }
 
-  downloadZip(urlList: string[], epName: string) {
-    console.log(urlList)
-    return new Promise((resolve, reject) => {
-      const zip = new JSZip()
-      let count = 0
-      for (let i = 0, len = urlList.length; i < len; i++) {
-        fetch(urlList[i])
+  download(urlList: string[], epName: string, jszip?: JSZip) {
+    const zip = jszip || new JSZip()
+    const folder = zip.folder(epName)
+    const pa = Promise.all(
+      urlList.map((item, index) =>
+        fetch(item)
           .then(response => response.blob())
           .then(blob => {
-            zip.file(`${prependZore(i)}.jpg`, blob)
-            count++
-            if (count === len - 1) {
-              resolve()
-              zip.generateAsync({ type: 'blob' }).then(content => {
-                saveAs(content, `${this.comicName}-${epName}.zip`)
-              })
-            }
+            console.log(`[${index + 1}/${urlList.length}] ${index + 1}.jpg`)
+            folder.file(`${prependZore(index + 1)}.jpg`, blob)
+            return
           })
-      }
-    })
+      )
+    )
+    if (!jszip) {
+      pa.then(() => zip.generateAsync({ type: 'blob' })).then(content => {
+        saveAs(content, `${this.comicName}-${epName}.zip`)
+      })
+    }
+
+    return pa
+  }
+
+  downloadAll(multi?: boolean) {
+    if (multi) {
+      this.list.map(item => this.download(item.urls, item.name))
+    } else {
+      const zip = new JSZip()
+      return Promise.all(
+        this.list.map(item => this.download(item.urls, item.name, zip))
+      )
+        .then(() => zip.generateAsync({ type: 'blob' }))
+        .then(content => {
+          this.list = []
+          saveAs(content, `${this.comicName}.zip`)
+        })
+    }
   }
 }
 
