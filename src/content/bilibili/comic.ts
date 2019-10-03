@@ -1,23 +1,26 @@
-import { getExtensionURL, sendMessage } from '../utils'
+import { getExtensionURL, prependZore } from '../utils'
 import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 
 export default class BilibiliComic {
+  comicName: string
+
   constructor() {}
 
   init() {
     const _this = this
     setTimeout(() => {
+      this.comicName = $('.manga-info .manga-title').text()
       $('.episode-list .list-data .list-item').each(function() {
-        $(this)
-          .find('.short-title')
-          .css({ width: 'calc(100% - 46px)' })
         if (!$(this).find('.locked').length) {
-          $(this).append(
-            $(
-              '<div class="download-button"><svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2173"><path d="M767.552304 255.903298l-95.945189 0c-17.662265 0-31.980365 14.3181-31.980365 31.980365 0 17.662265 14.3181 31.980365 31.980365 31.980365l64.218604 0c17.520025 0 31.722492 14.202467 31.722492 31.722492l0 448.239837c0 17.520025-14.202467 31.722492-31.722492 31.722492L223.62515 831.54885c-17.520025 0-31.722492-14.202467-31.722492-31.722492L191.902658 351.585497c0-17.520025 14.202467-31.722492 31.722492-31.722492l64.207347 0 0 0c0.004093 0 0.007163 0 0.011256 0 17.662265 0 31.980365-14.3181 31.980365-31.980365 0-17.662265-14.3181-31.980365-31.980365-31.980365-0.004093 0-0.007163 0-0.011256 0l0 0-95.933933 0c-35.322483 0-63.956637 28.634154-63.956637 63.956637l0 511.693008c0 35.322483 28.634154 63.956637 63.956637 63.956637l575.653739 0c35.322483 0 63.956637-28.634154 63.956637-63.956637L831.508941 319.859935C831.508941 284.537452 802.874787 255.903298 767.552304 255.903298zM310.382073 457.076086c-12.388145-12.388145-32.473599-12.388145-44.862767 0l-0.364297 0.364297c-12.388145 12.388145-12.388145 32.473599 0 44.862767l190.186574 190.186574c5.818519 6.813173 14.465456 11.137665 24.12649 11.137665l0.148379 0c0.002047 0 0.00307 0 0.005117 0l0.208754 0c0.002047 0 0.00307 0 0.005117 0l0.148379 0c9.662057 0 18.307971-4.324492 24.12649-11.137665L694.296883 502.30315c12.388145-12.388145 12.388145-32.473599 0-44.862767l-0.364297-0.364297c-12.388145-12.388145-32.473599-12.388145-44.862767 0L511.706311 594.439594 511.706311 95.743598c0-17.520025-14.202467-31.722492-31.722492-31.722492l-0.515746 0c-17.520025 0-31.722492 14.202467-31.722492 31.722492l0 498.695996L310.382073 457.076086z" p-id="2578"></path></svg></div>'
+          $(this)
+            .append(
+              $(
+                '<div class="download-button"><svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2173"><path d="M767.552304 255.903298l-95.945189 0c-17.662265 0-31.980365 14.3181-31.980365 31.980365 0 17.662265 14.3181 31.980365 31.980365 31.980365l64.218604 0c17.520025 0 31.722492 14.202467 31.722492 31.722492l0 448.239837c0 17.520025-14.202467 31.722492-31.722492 31.722492L223.62515 831.54885c-17.520025 0-31.722492-14.202467-31.722492-31.722492L191.902658 351.585497c0-17.520025 14.202467-31.722492 31.722492-31.722492l64.207347 0 0 0c0.004093 0 0.007163 0 0.011256 0 17.662265 0 31.980365-14.3181 31.980365-31.980365 0-17.662265-14.3181-31.980365-31.980365-31.980365-0.004093 0-0.007163 0-0.011256 0l0 0-95.933933 0c-35.322483 0-63.956637 28.634154-63.956637 63.956637l0 511.693008c0 35.322483 28.634154 63.956637 63.956637 63.956637l575.653739 0c35.322483 0 63.956637-28.634154 63.956637-63.956637L831.508941 319.859935C831.508941 284.537452 802.874787 255.903298 767.552304 255.903298zM310.382073 457.076086c-12.388145-12.388145-32.473599-12.388145-44.862767 0l-0.364297 0.364297c-12.388145 12.388145-12.388145 32.473599 0 44.862767l190.186574 190.186574c5.818519 6.813173 14.465456 11.137665 24.12649 11.137665l0.148379 0c0.002047 0 0.00307 0 0.005117 0l0.208754 0c0.002047 0 0.00307 0 0.005117 0l0.148379 0c9.662057 0 18.307971-4.324492 24.12649-11.137665L694.296883 502.30315c12.388145-12.388145 12.388145-32.473599 0-44.862767l-0.364297-0.364297c-12.388145-12.388145-32.473599-12.388145-44.862767 0L511.706311 594.439594 511.706311 95.743598c0-17.520025-14.202467-31.722492-31.722492-31.722492l-0.515746 0c-17.520025 0-31.722492 14.202467-31.722492 31.722492l0 498.695996L310.382073 457.076086z" p-id="2578"></path></svg></div>'
+              )
             )
-          )
+            .find('.short-title')
+            .css({ width: 'calc(100% - 46px)' })
         }
       })
 
@@ -29,11 +32,20 @@ export default class BilibiliComic {
 
       $('.download-button').click(function(e) {
         e.stopPropagation()
+        console.log($(this))
+
         const data = $(this)
           .parent('.list-item')
           .data('bili-manga-msg')
-        if (data) {
-          _this.fetchIndex(data.manga_id, Number(data.manga_num))
+
+        if (parent) {
+          const epName = $(this)
+            .parent('.list-item')
+            .find('.short_title')
+            .text()
+          console.log(data, epName)
+
+          _this.fetchIndex(epName, data.manga_id, Number(data.manga_num))
         }
       })
     }, 300)
@@ -41,7 +53,7 @@ export default class BilibiliComic {
 
   setData() {}
 
-  fetchIndex(comic_id: number, ep_id: number) {
+  fetchIndex(epName: string, comic_id: number, ep_id: number) {
     fetch(
       'https://manga.bilibili.com/twirp/comic.v1.Comic/GetImageIndex?device=pc&platform=web',
       {
@@ -76,7 +88,7 @@ export default class BilibiliComic {
         )
       )
       .then(data => {
-        this.downloadZip(data)
+        this.downloadZip(data, epName)
       })
       .catch(error => {
         console.error(error)
@@ -97,7 +109,7 @@ export default class BilibiliComic {
     ).then(response => response.json())
   }
 
-  downloadZip(urlList: string[]) {
+  downloadZip(urlList: string[], epName: string) {
     console.log(urlList)
     return new Promise((resolve, reject) => {
       const zip = new JSZip()
@@ -106,12 +118,12 @@ export default class BilibiliComic {
         fetch(urlList[i])
           .then(response => response.blob())
           .then(blob => {
-            zip.file(`${i}.jpg`, blob)
+            zip.file(`${prependZore(i)}.jpg`, blob)
             count++
             if (count === len - 1) {
               resolve()
               zip.generateAsync({ type: 'blob' }).then(content => {
-                saveAs(content, 'example.zip')
+                saveAs(content, `${this.comicName}-${epName}.zip`)
               })
             }
           })

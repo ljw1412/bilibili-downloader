@@ -21,6 +21,16 @@ export function copyText(str: string) {
   $('#copy_tmp').remove()
 }
 
+export function prependZore(
+  number: number | string,
+  maxlength: number = 3
+): string {
+  if (number >= Math.pow(10, maxlength)) return number + ''
+  const zoreList = new Array(maxlength).fill(0)
+  const preZore = zoreList.join('')
+  return (preZore + number).slice(-maxlength)
+}
+
 // fetch 实时进度功能
 function isFetchProgressSupported() {
   return (
