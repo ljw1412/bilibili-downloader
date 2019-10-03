@@ -8,7 +8,7 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "types": ["chrome", "jquery", "file-saver"],
+    "types": ["chrome", "jquery", "file-saver", "jszip"],
     "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
   },
   "paths": {

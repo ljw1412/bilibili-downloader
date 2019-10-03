@@ -1,5 +1,12 @@
 import Bilibili from './bilibili'
-const bilibili = new Bilibili()
+import BilibiliComic from './bilibili/comic'
+
+let bilibili: Bilibili | BilibiliComic
+if (location.origin.includes('manga')) {
+  bilibili = new BilibiliComic()
+} else {
+  bilibili = new Bilibili()
+}
 ;(function() {
   bilibili.init()
 })()

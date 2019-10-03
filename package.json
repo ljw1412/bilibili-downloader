@@ -21,7 +21,7 @@
   "homepage": "https://github.com/ljw1412/video-parser#readme",
   "dependencies": {
     "file-saver": "^2.0.2",
-    "jquery": "^3.4.1",
+    "jszip": "^3.2.2",
     "node-sass": "^4.12.0",
     "sass-loader": "^7.1.0",
     "ts-loader": "^6.0.4",
@@ -35,6 +35,7 @@
     "@types/chrome": "^0.0.89",
     "@types/file-saver": "^2.0.1",
     "@types/jquery": "^3.3.30",
+    "@types/jszip": "^3.1.6",
     "babel-loader": "^8.0.6",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.0.3",

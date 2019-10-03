@@ -23,7 +23,11 @@
     {
       "all_frames": true,
       "js": ["js/jquery.min.js", "js/content.js"],
-      "matches": ["*://*.bilibili.com/video/av*", "*://*.bilibili.com/*/play*"]
+      "matches": [
+        "*://*.bilibili.com/video/av*",
+        "*://*.bilibili.com/*/play*",
+        "*://manga.bilibili.com/detail/*"
+      ]
     }
   ],
   "icons": {
@@ -32,6 +36,7 @@
   "version": "##[config]version##",
   "web_accessible_resources": [
     "template/downloadView.html",
-    "css/downloadView.css"
+    "css/downloadView.css",
+    "css/bilibiliComic.css"
   ]
 }

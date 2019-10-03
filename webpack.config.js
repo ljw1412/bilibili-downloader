@@ -153,6 +153,7 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.json'],
     alias: {
       vue$: 'vue/dist/vue.esm.js',
+      jszip$: 'jszip/dist/jszip.min.js',
       '@': './src'
     }
   },

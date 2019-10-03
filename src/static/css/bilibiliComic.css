@@ -1,0 +1,21 @@
+.download-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 100%;
+  color: #ffffff;
+  font-size: 24px;
+  background-color: #32aaff;
+}
+
+.download-button:hover {
+  opacity: 0.8;
+}
+
+.download-button:active {
+  opacity: 0.8;
+}
