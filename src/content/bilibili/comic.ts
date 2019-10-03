@@ -137,7 +137,9 @@ export default class BilibiliComic {
         fetch(item)
           .then(response => response.blob())
           .then(blob => {
-            console.log(`[${index + 1}/${urlList.length}] ${index + 1}.jpg`)
+            console.log(
+              `[${index + 1}/${urlList.length}] ${epName}/${index + 1}.jpg`
+            )
             folder.file(`${prependZore(index + 1)}.jpg`, blob)
             return
           })
