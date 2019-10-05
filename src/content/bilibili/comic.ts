@@ -151,7 +151,7 @@ export default class BilibiliComic {
               `[${index + 1}/${urlList.length}] ${epName}/${index + 1}.jpg`
             )
             folder.file(`${prependZore(index + 1)}.jpg`, blob)
-            return
+            return blob
           })
       )
     ).then(() => {
