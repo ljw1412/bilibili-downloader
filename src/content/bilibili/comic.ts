@@ -36,6 +36,10 @@ export default class BilibiliComic {
 
       $('.download-button').click(function(e) {
         e.stopPropagation()
+        if ($(this).data('blob')) {
+          saveAs($(this).data('blob'), $(this).data('blob-name'))
+          return
+        }
         const data = $(this)
           .parent('.list-item')
           .data('bili-manga-msg')
@@ -45,7 +49,13 @@ export default class BilibiliComic {
             .siblings('.short-title')
             .text()
           console.log(epName, data)
-          _this.fetchIndex(epName, data.manga_id, Number(data.manga_num), false)
+          _this
+            .fetchIndex(epName, data.manga_id, Number(data.manga_num), false)
+            .then(({ url, name }: { url: string; name: string }) => {
+              $(this)
+                .data('blob', url)
+                .data('blob-name', name)
+            })
         }
       })
 
@@ -110,7 +120,7 @@ export default class BilibiliComic {
         if (isAll) {
           this.list.push({ name: epName, urls: data })
         } else {
-          this.download(data, epName)
+          return this.download(data, epName)
         }
       })
       .catch(error => {
@@ -132,7 +142,7 @@ export default class BilibiliComic {
   download(urlList: string[], epName: string, jszip?: JSZip) {
     const zip = jszip || new JSZip()
     const folder = zip.folder(epName)
-    const pa = Promise.all(
+    return Promise.all(
       urlList.map((item, index) =>
         fetch(item)
           .then(response => response.blob())
@@ -144,14 +154,17 @@ export default class BilibiliComic {
             return
           })
       )
-    )
-    if (!jszip) {
-      pa.then(() => zip.generateAsync({ type: 'blob' })).then(content => {
-        saveAs(content, `${this.comicName}-${epName}.zip`)
-      })
-    }
-
-    return pa
+    ).then(() => {
+      if (!jszip) {
+        return zip.generateAsync({ type: 'blob' }).then(content => {
+          const url = URL.createObjectURL(content)
+          const name = `${this.comicName}-${epName}.zip`
+          saveAs(url, name)
+          return { url, name }
+        })
+      }
+      return
+    })
   }
 
   downloadAll(multi?: boolean) {
