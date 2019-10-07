@@ -17,10 +17,16 @@ interface DownloadOptions {
   el?: HTMLElement
 }
 
+interface BatchDownloadItem {
+  name: string
+  urls: string[]
+  el: HTMLElement
+}
+
 export default class BilibiliComic {
   baseUrl = 'https://manga.bilibili.com/twirp/comic.v1.Comic'
   comicName: string
-  list: { name: string; urls: string[] }[] = []
+  list: BatchDownloadItem[] = []
 
   constructor() {}
 
@@ -87,17 +93,20 @@ export default class BilibiliComic {
             const name = $(this)
               .find('.short-title')
               .text()
-            list.push(Object.assign({ name }, $(this).data('bili-manga-msg')))
+            list.push(
+              Object.assign({ name, el: this }, $(this).data('bili-manga-msg'))
+            )
           })
         console.log(list)
 
         Promise.all(
-          list.map(({ name, manga_id, manga_num }) => {
+          list.map(({ name, manga_id, manga_num, el }) => {
             return this.fetchIndex({
               name: name,
               cid: manga_id,
               eid: Number(manga_num),
-              isAll: true
+              isAll: true,
+              el
             })
           })
         ).then(() => {
@@ -111,8 +120,6 @@ export default class BilibiliComic {
   setData() {}
 
   fetchIndex({ name, cid, eid, isAll, el }: FetchIndexOptions) {
-    console.log(el)
-
     return fetch(`${this.baseUrl}/GetImageIndex?device=pc&platform=web`, {
       method: 'Post',
       body: JSON.stringify({ ep_id: eid }),
@@ -145,7 +152,7 @@ export default class BilibiliComic {
       )
       .then(data => {
         if (isAll) {
-          this.list.push({ name, urls: data })
+          this.list.push({ name, urls: data, el })
         } else {
           return this.download({ urlList: data, epName: name, el })
         }
@@ -207,13 +214,18 @@ export default class BilibiliComic {
   downloadAll(multi?: boolean) {
     if (multi) {
       this.list.map(item =>
-        this.download({ urlList: item.urls, epName: item.name })
+        this.download({ urlList: item.urls, epName: item.name, el: item.el })
       )
     } else {
       const zip = new JSZip()
       return Promise.all(
         this.list.map(item =>
-          this.download({ urlList: item.urls, epName: item.name, jszip: zip })
+          this.download({
+            urlList: item.urls,
+            epName: item.name,
+            jszip: zip,
+            el: item.el
+          })
         )
       )
         .then(() => zip.generateAsync({ type: 'blob' }))
