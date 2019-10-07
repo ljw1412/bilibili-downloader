@@ -2,6 +2,21 @@ import { getExtensionURL, prependZore } from '../utils'
 import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 
+interface FetchIndexOptions {
+  name: string
+  cid: number
+  eid: number
+  isAll?: boolean
+  el?: HTMLElement
+}
+
+interface DownloadOptions {
+  urlList: string[]
+  epName: string
+  jszip?: JSZip
+  el?: HTMLElement
+}
+
 export default class BilibiliComic {
   baseUrl = 'https://manga.bilibili.com/twirp/comic.v1.Comic'
   comicName: string
@@ -50,7 +65,12 @@ export default class BilibiliComic {
             .text()
           console.log(epName, data)
           _this
-            .fetchIndex(epName, data.manga_id, Number(data.manga_num), false)
+            .fetchIndex({
+              name: epName,
+              cid: data.manga_id,
+              eid: Number(data.manga_num),
+              el: this
+            })
             .then(({ url, name }: { url: string; name: string }) => {
               $(this)
                 .data('blob', url)
@@ -73,7 +93,12 @@ export default class BilibiliComic {
 
         Promise.all(
           list.map(({ name, manga_id, manga_num }) => {
-            return this.fetchIndex(name, manga_id, Number(manga_num), true)
+            return this.fetchIndex({
+              name: name,
+              cid: manga_id,
+              eid: Number(manga_num),
+              isAll: true
+            })
           })
         ).then(() => {
           // 目前使用多个压缩包的形式，如果用一个压缩包会浏览器卡死
@@ -85,10 +110,12 @@ export default class BilibiliComic {
 
   setData() {}
 
-  fetchIndex(epName: string, comic_id: number, ep_id: number, isAll: boolean) {
+  fetchIndex({ name, cid, eid, isAll, el }: FetchIndexOptions) {
+    console.log(el)
+
     return fetch(`${this.baseUrl}/GetImageIndex?device=pc&platform=web`, {
       method: 'Post',
-      body: JSON.stringify({ ep_id }),
+      body: JSON.stringify({ ep_id: eid }),
       headers: {
         'content-type': 'application/json'
       },
@@ -102,7 +129,7 @@ export default class BilibiliComic {
         String.fromCharCode.apply(null, new Uint8Array(arrayBuffer))
       )
       .then(data => {
-        const indexDataParser = new IndexDataParser(comic_id, ep_id, data)
+        const indexDataParser = new IndexDataParser(cid, eid, data)
         return indexDataParser.parse()
       })
       .then(data => JSON.parse(data))
@@ -118,9 +145,9 @@ export default class BilibiliComic {
       )
       .then(data => {
         if (isAll) {
-          this.list.push({ name: epName, urls: data })
+          this.list.push({ name, urls: data })
         } else {
-          return this.download(data, epName)
+          return this.download({ urlList: data, epName: name, el })
         }
       })
       .catch(error => {
@@ -139,18 +166,28 @@ export default class BilibiliComic {
     }).then(response => response.json())
   }
 
-  download(urlList: string[], epName: string, jszip?: JSZip) {
+  download({ urlList, epName, jszip, el }: DownloadOptions) {
     const zip = jszip || new JSZip()
     const folder = zip.folder(epName)
+    const len = urlList.length
+    let count = 0
     return Promise.all(
       urlList.map((item, index) =>
         fetch(item)
           .then(response => response.blob())
           .then(blob => {
-            console.log(
-              `[${index + 1}/${urlList.length}] ${epName}/${index + 1}.jpg`
-            )
+            console.log(`[${index + 1}/${len}] ${epName}/${index + 1}.jpg`)
             folder.file(`${prependZore(index + 1)}.jpg`, blob)
+            count++
+            if (el) {
+              $(el).css({
+                background: `linear-gradient(0deg, #32aaff ${(count / len) *
+                  100}%, #fff 0%,#fff 100%)`
+              })
+              if (count >= len) {
+                $(el).css({ background: '#7bce2b' })
+              }
+            }
             return blob
           })
       )
@@ -169,11 +206,15 @@ export default class BilibiliComic {
 
   downloadAll(multi?: boolean) {
     if (multi) {
-      this.list.map(item => this.download(item.urls, item.name))
+      this.list.map(item =>
+        this.download({ urlList: item.urls, epName: item.name })
+      )
     } else {
       const zip = new JSZip()
       return Promise.all(
-        this.list.map(item => this.download(item.urls, item.name, zip))
+        this.list.map(item =>
+          this.download({ urlList: item.urls, epName: item.name, jszip: zip })
+        )
       )
         .then(() => zip.generateAsync({ type: 'blob' }))
         .then(content => {

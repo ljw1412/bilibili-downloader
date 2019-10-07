@@ -17,6 +17,16 @@
 #download-all:hover {
   border-color: rgba(0, 0, 0, 0.34);
 }
+
+.list-item.is-read {
+  opacity: 1 !important;
+  border-color: rgba(0, 0, 0, 0.072);
+}
+
+.list-item.is-read > *:not(.download-button) {
+  opacity: 0.6;
+}
+
 .download-button {
   position: absolute;
   right: 0;
@@ -29,6 +39,7 @@
   color: #ffffff;
   font-size: 24px;
   background-color: #32aaff;
+  transform: all 0.3s;
 }
 
 .download-button:hover {
