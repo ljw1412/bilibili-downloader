@@ -33,5 +33,8 @@ export const parseRequest = (request: any) => {
     credentials: 'same-origin'
   })
     .then(resp => resp.json())
-    .then(data => parsePlayInfo(data.result || data.data))
+    .then(data => ({
+      response: data,
+      result: parsePlayInfo(data.result || data.data)
+    }))
 }

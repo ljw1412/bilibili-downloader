@@ -18,3 +18,9 @@ export const message = baseLog('message', '#409EFF')
 export const success = baseLog('success', '#67C23A')
 
 export const error = baseLog('error', '#F56C6C')
+
+export const warning = baseLog('warning', '#f5a623')
+
+export const request = baseLog('request', '#2f9395')
+
+export const response = baseLog('response', '#1adacf')

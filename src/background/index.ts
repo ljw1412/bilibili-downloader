@@ -45,9 +45,10 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
     if (request.tabId != -1) {
       const tabId = request.tabId
       const website = matchWebsite(request.url)
-      log.message(`[api] website:${website} tabId:${tabId}`, request)
-      bilibiliHelper.parseRequest(request).then(result => {
-        log.success(`website:${website} tabId:${tabId}`, result)
+      log.request(`[request] website:${website} tabId:${tabId}`, request)
+      bilibiliHelper.parseRequest(request).then(({ response, result }) => {
+        log.response(`[response] website:${website} tabId:${tabId}`, response)
+        log.success(`[toTab] website:${website} tabId:${tabId}`, result)
         sendToTab(tabId, 'list', result)
         cache[tabId] = result
       })
@@ -75,14 +76,14 @@ chrome.extension.onMessage.addListener(
         if (website === 'bilibili') {
           result = bilibiliHelper.parse(message)
         }
-        log.success(`website:${website} tabId:${tabId}`, result)
+        log.success(`[toTab] website:${website} tabId:${tabId}`, result)
         sendToTab(tabId, 'list', result)
         break
       case 'ready':
         if (cache[tabId]) sendToTab(tabId, 'list', cache[tabId])
         break
       default:
-        console.log(`暂时没有处理该类型[${message.action}]的方法`)
+        log.warning(`暂时没有处理该类型[${message.action}]的方法`)
         break
     }
   }
