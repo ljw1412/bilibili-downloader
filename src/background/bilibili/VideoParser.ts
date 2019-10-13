@@ -12,8 +12,9 @@ const videoQualityMap: Record<number, string> = {
   0: '自动'
 }
 const audioQualityMap: Record<number, string> = {
-  30280: '高',
-  30216: '中'
+  30280: '高质量',
+  30232: '中质量',
+  30216: '低质量'
 }
 
 export default class VideoParser implements bilibili.ProcessedData {
@@ -73,8 +74,11 @@ export default class VideoParser implements bilibili.ProcessedData {
     const parseMedia = (
       list: bilibili.Mp4Model[],
       qualityMap: Record<number, string>
-    ) =>
-      list.map((item: bilibili.Mp4Model) => ({
+    ) => {
+      try {
+        list.sort((a, b) => b.id - a.id)
+      } catch (error) {}
+      return list.map((item: bilibili.Mp4Model) => ({
         url: item.baseUrl,
         name: getFileName(item.baseUrl),
         ext: getExt(getFileName(item.baseUrl)),
@@ -84,7 +88,7 @@ export default class VideoParser implements bilibili.ProcessedData {
         quality: item.id,
         qualityStr: qualityMap[item.id]
       }))
-
+    }
     this.videoList = parseMedia(dash.video, videoQualityMap)
     this.audioList = parseMedia(dash.audio, audioQualityMap)
   }
