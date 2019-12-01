@@ -25,96 +25,121 @@ interface BatchDownloadItem {
 
 export default class BilibiliComic {
   baseUrl = 'https://manga.bilibili.com/twirp/comic.v1.Comic'
+  comicId: number
   comicName: string
   list: BatchDownloadItem[] = []
+  comic: Record<string, any>
+  isDownload = false
 
   constructor() {}
 
-  init() {
+  // 增加章节遮罩
+  addButtonMask() {
     const _this = this
-    setTimeout(() => {
-      const downloadAllButton = $('<button id="download-all">一键下载</button>')
-      this.comicName = $('.manga-info .manga-title').text()
-      $('.manga-info .action-buttons').append(downloadAllButton)
-      $('.episode-list .list-data .list-item').each(function() {
-        if (!$(this).find('.locked').length) {
-          $(this)
-            .append(
-              $(
-                '<div class="download-button"><svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2173"><path d="M767.552304 255.903298l-95.945189 0c-17.662265 0-31.980365 14.3181-31.980365 31.980365 0 17.662265 14.3181 31.980365 31.980365 31.980365l64.218604 0c17.520025 0 31.722492 14.202467 31.722492 31.722492l0 448.239837c0 17.520025-14.202467 31.722492-31.722492 31.722492L223.62515 831.54885c-17.520025 0-31.722492-14.202467-31.722492-31.722492L191.902658 351.585497c0-17.520025 14.202467-31.722492 31.722492-31.722492l64.207347 0 0 0c0.004093 0 0.007163 0 0.011256 0 17.662265 0 31.980365-14.3181 31.980365-31.980365 0-17.662265-14.3181-31.980365-31.980365-31.980365-0.004093 0-0.007163 0-0.011256 0l0 0-95.933933 0c-35.322483 0-63.956637 28.634154-63.956637 63.956637l0 511.693008c0 35.322483 28.634154 63.956637 63.956637 63.956637l575.653739 0c35.322483 0 63.956637-28.634154 63.956637-63.956637L831.508941 319.859935C831.508941 284.537452 802.874787 255.903298 767.552304 255.903298zM310.382073 457.076086c-12.388145-12.388145-32.473599-12.388145-44.862767 0l-0.364297 0.364297c-12.388145 12.388145-12.388145 32.473599 0 44.862767l190.186574 190.186574c5.818519 6.813173 14.465456 11.137665 24.12649 11.137665l0.148379 0c0.002047 0 0.00307 0 0.005117 0l0.208754 0c0.002047 0 0.00307 0 0.005117 0l0.148379 0c9.662057 0 18.307971-4.324492 24.12649-11.137665L694.296883 502.30315c12.388145-12.388145 12.388145-32.473599 0-44.862767l-0.364297-0.364297c-12.388145-12.388145-32.473599-12.388145-44.862767 0L511.706311 594.439594 511.706311 95.743598c0-17.520025-14.202467-31.722492-31.722492-31.722492l-0.515746 0c-17.520025 0-31.722492 14.202467-31.722492 31.722492l0 498.695996L310.382073 457.076086z" p-id="2578"></path></svg></div>'
-              )
-            )
-            .find('.short-title')
-            .css({ width: 'calc(100% - 46px)' })
+    $('.episode-list .list-data .list-item').prepend(
+      '<div class="download-mask"></div>'
+    )
+    $('.list-item .download-mask').click(function(e) {
+      e.stopPropagation()
+      const parent = $(this)
+        .parent()
+        .get(0)
+      if ($(this).data('blob')) {
+        saveAs($(this).data('blob'), $(this).data('blob-name'))
+        return
+      }
+      const data = $(parent).data()
+      if (data && !data.is_locked) {
+        const epName = $(this)
+          .siblings('.short-title')
+          .text()
+        console.log(epName, data)
+        _this
+          .fetchIndex({
+            name: epName,
+            cid: data.manga_id,
+            eid: data.manga_num,
+            el: this
+          })
+          .then(({ url, name }: { url: string; name: string }) => {
+            $(this)
+              .data('blob', url)
+              .data('blob-name', name)
+          })
+      }
+    })
+  }
+
+  // 增加模式切换按钮
+  addSwitchButton() {
+    const switchModeButton = $('<button id="switch-mode">模式：正常</button>')
+    $('.manga-info .action-buttons').append(switchModeButton)
+    switchModeButton.click(() => {
+      this.isDownload = !this.isDownload
+      switchModeButton.text(this.isDownload ? '模式：下载' : '模式：正常')
+      if (this.isDownload) {
+        $('.episode-list .list-data .list-item').addClass('list-item--stop')
+      } else {
+        $('.episode-list .list-data .list-item').removeClass('list-item--stop')
+      }
+    })
+
+    const cssURL = getExtensionURL('css/bilibiliComic.css')
+    $('head').append(
+      `<link  rel="stylesheet" type="text/css" href="${cssURL}"/>`
+    )
+
+    console.log('漫画下载按钮添加完毕')
+  }
+
+  appendChapterInfo() {
+    if (this.comic) {
+      this.comic.ep_list.forEach((item: any) => {
+        const el = $(
+          `.list-item:contains(${item.short_title.trim()}${item.title})`
+        )
+        if (el) {
+          el.data({ ...item, manga_id: this.comicId, manga_num: item.id })
+          if (item.is_locked) el.addClass('list-item--locked')
         }
       })
+    }
+  }
 
-      const cssURL = getExtensionURL('css/bilibiliComic.css')
-      $('head').append(
-        `<link  rel="stylesheet" type="text/css" href="${cssURL}"/>`
+  // 请求漫画详情
+  fetchComicDetail() {
+    if (this.comicId) {
+      fetch(
+        'https://manga.bilibili.com/twirp/comic.v2.Comic/ComicDetail?device=pc&platform=web',
+        {
+          method: 'post',
+          body: JSON.stringify({ comic_id: this.comicId }),
+          headers: {
+            'content-type': 'application/json'
+          },
+          credentials: 'same-origin'
+        }
       )
-      console.log('漫画下载按钮添加完毕')
-
-      $('.download-button').click(function(e) {
-        e.stopPropagation()
-        if ($(this).data('blob')) {
-          saveAs($(this).data('blob'), $(this).data('blob-name'))
-          return
-        }
-        const data = $(this)
-          .parent('.list-item')
-          .data('bili-manga-msg')
-
-        if (data) {
-          const epName = $(this)
-            .siblings('.short-title')
-            .text()
-          console.log(epName, data)
-          _this
-            .fetchIndex({
-              name: epName,
-              cid: data.manga_id,
-              eid: Number(data.manga_num),
-              el: this
-            })
-            .then(({ url, name }: { url: string; name: string }) => {
-              $(this)
-                .data('blob', url)
-                .data('blob-name', name)
-            })
-        }
-      })
-
-      downloadAllButton.click(() => {
-        const list: Record<string, any>[] = []
-        $('.list-item .download-button')
-          .parent('.list-item')
-          .each(function() {
-            const name = $(this)
-              .find('.short-title')
-              .text()
-            list.push(
-              Object.assign({ name, el: this }, $(this).data('bili-manga-msg'))
-            )
-          })
-        console.log(list)
-
-        Promise.all(
-          list.map(({ name, manga_id, manga_num, el }) => {
-            return this.fetchIndex({
-              name: name,
-              cid: manga_id,
-              eid: Number(manga_num),
-              isAll: true,
-              el
-            })
-          })
-        ).then(() => {
-          // 目前使用多个压缩包的形式，如果用一个压缩包会浏览器卡死
-          this.downloadAll(true)
+        .then(resp => resp.json())
+        .then(({ data }) => {
+          console.log('[获取漫画信息成功]', data)
+          this.comic = data
+          this.appendChapterInfo()
         })
-      })
-    }, 300)
+        .catch(error => {
+          console.error('[获取漫画信息失败]', error)
+        })
+    }
+  }
+
+  init() {
+    this.comicId = parseInt(location.pathname.match(/\d+/)[0])
+    setTimeout(() => {
+      this.addSwitchButton()
+      this.addButtonMask()
+      this.fetchComicDetail()
+      this.comicName = $('.manga-info .manga-title').text()
+    }, 500)
   }
 
   setData() {}
@@ -188,7 +213,7 @@ export default class BilibiliComic {
             count++
             if (el) {
               $(el).css({
-                background: `linear-gradient(0deg, #32aaff ${(count / len) *
+                background: `linear-gradient(90deg, #32aaff ${(count / len) *
                   100}%, #fff 0%,#fff 100%)`
               })
               if (count >= len) {

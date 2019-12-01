@@ -2,7 +2,7 @@ import Bilibili from './bilibili'
 import BilibiliComic from './bilibili/comic'
 
 let bilibili: Bilibili | BilibiliComic
-if (location.origin.includes('manga')) {
+if (location.href.includes('manga.bilibili.com/detail')) {
   bilibili = new BilibiliComic()
 } else {
   bilibili = new Bilibili()
