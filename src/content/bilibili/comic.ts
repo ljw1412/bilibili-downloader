@@ -95,12 +95,16 @@ export default class BilibiliComic {
   appendChapterInfo() {
     if (this.comic) {
       this.comic.ep_list.forEach((item: any) => {
-        const el = $(
-          `.list-item:contains(${item.short_title.trim()}${item.title})`
-        )
+        let el = $(`.short-title:contains(${item.short_title})`)
+        if (el.length > 1) {
+          el = $(Array.from(el).find(el => el.innerHTML == item.short_title))
+        }
+        el = el.parent()
         if (el) {
           el.data({ ...item, manga_id: this.comicId, manga_num: item.id })
           if (item.is_locked) el.addClass('list-item--locked')
+        } else {
+          console.warn('[绑定元素错误] 未找到对应元素！', item)
         }
       })
     }
