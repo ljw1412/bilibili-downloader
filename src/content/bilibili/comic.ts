@@ -49,7 +49,7 @@ export default class BilibiliComic {
         return
       }
       const data = $(parent).data()
-      if (data && !data.is_locked) {
+      if (data && (!data.is_locked || data.is_in_free)) {
         const epName = $(this)
           .siblings('.short-title')
           .text()
@@ -102,7 +102,9 @@ export default class BilibiliComic {
         el = el.parent()
         if (el) {
           el.data({ ...item, manga_id: this.comicId, manga_num: item.id })
-          if (item.is_locked) el.addClass('list-item--locked')
+          if (item.is_locked && !item.is_in_free) {
+            el.addClass('list-item--locked')
+          }
         } else {
           console.warn('[绑定元素错误] 未找到对应元素！', item)
         }
