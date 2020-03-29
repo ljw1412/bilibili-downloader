@@ -85,3 +85,31 @@ export function fetchProgress({
     })
   }
 }
+
+export function xhr(
+  method: 'GET' | 'POST' = 'GET',
+  url: string,
+  options?: { headers?: Record<string, any> },
+  onprogress?: (e: ProgressEvent) => void
+) {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest()
+    request.open(method, url, true)
+    request.responseType = 'blob'
+    request.onerror = reject
+    onprogress && (request.onprogress = onprogress)
+    if (options && options.headers) {
+      Object.keys(options.headers).forEach(key => {
+        request.setRequestHeader(key, options.headers[key])
+      })
+    }
+
+    request.onload = () => {
+      // console.log(`[请求] (${request.status}) ${url}`)
+      if (request.status === 200) {
+        resolve(request.response)
+      }
+    }
+    request.send()
+  })
+}

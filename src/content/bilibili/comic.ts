@@ -1,4 +1,4 @@
-import { getExtensionURL, prependZore } from '../utils'
+import { getExtensionURL, prependZore, xhr } from '../utils'
 import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 
@@ -30,6 +30,7 @@ export default class BilibiliComic {
   list: BatchDownloadItem[] = []
   comic: Record<string, any>
   isDownload = false
+  quality = ''
 
   constructor() {}
 
@@ -73,15 +74,31 @@ export default class BilibiliComic {
   // 增加模式切换按钮
   addSwitchButton() {
     const switchModeButton = $('<button id="switch-mode">模式：正常</button>')
+    const qualitySelect = $(
+      `<select style="display:none">
+      <option value="" selected>原图</option>
+      <option value="1600">极高</option>
+      <option value="1100">高</option>
+      <option value="800">普通</option>
+      </select>`
+    )
     $('.manga-info .action-buttons').append(switchModeButton)
+    $('.manga-info .action-buttons').append(qualitySelect)
     switchModeButton.click(() => {
       this.isDownload = !this.isDownload
       switchModeButton.text(this.isDownload ? '模式：下载' : '模式：正常')
       if (this.isDownload) {
         $('.episode-list .list-data .list-item').addClass('list-item--stop')
+        qualitySelect.show()
       } else {
         $('.episode-list .list-data .list-item').removeClass('list-item--stop')
+        qualitySelect.hide()
       }
+    })
+
+    qualitySelect.on('change', e => {
+      console.log('[切换质量]', (e.target as HTMLSelectElement).value)
+      this.quality = (e.target as HTMLSelectElement).value
     })
 
     const cssURL = getExtensionURL('css/bilibiliComic.css')
@@ -193,7 +210,13 @@ export default class BilibiliComic {
       })
   }
 
+  getQualityImage(url: string) {
+    return url + (this.quality ? `@${this.quality}w.jpg` : '')
+  }
+
+  // 请求图片token
   fetchImageList(urlList: string[]) {
+    urlList = urlList.map(url => this.getQualityImage(url))
     return fetch(`${this.baseUrl}/ImageToken?device=pc&platform=web`, {
       method: 'Post',
       body: JSON.stringify({ urls: JSON.stringify(urlList) }),
@@ -211,9 +234,13 @@ export default class BilibiliComic {
     let count = 0
     return Promise.all(
       urlList.map((item, index) =>
-        fetch(item)
-          .then(response => response.blob())
-          .then(blob => {
+        xhr('GET', item, {
+          headers: { accept: 'application/json, text/plain, */*' }
+        })
+          // .then(response => URL.createObjectURL(response))
+          // fetch(item)
+          //   .then(response => response.blob())
+          .then((blob: Blob) => {
             console.log(`[${index + 1}/${len}] ${epName}/${index + 1}.jpg`)
             folder.file(`${prependZore(index + 1)}.jpg`, blob)
             count++
