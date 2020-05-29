@@ -25,6 +25,7 @@
       "js": ["js/jquery.min.js", "js/content.js"],
       "matches": [
         "*://*.bilibili.com/video/av*",
+        "*://*.bilibili.com/video/BV*",
         "*://*.bilibili.com/*/play*",
         "*://manga.bilibili.com/detail/*"
       ]
