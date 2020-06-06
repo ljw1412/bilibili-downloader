@@ -1,3 +1,8 @@
+#video-parser {
+  position: relative;
+  z-index: 150;
+}
+
 #video-parser * {
   user-select: none;
 }

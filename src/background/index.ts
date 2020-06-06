@@ -42,7 +42,10 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
       appendHeader(requestHeaders, 'Origin', 'https://www.bilibili.com')
       return { requestHeaders }
     }
-    if (request.tabId != -1) {
+    if (
+      request.tabId != -1 &&
+      !request.url.includes('requestFrom=bilibili-helper')
+    ) {
       const tabId = request.tabId
       const website = matchWebsite(request.url)
       log.request(`[request] website:${website} tabId:${tabId}`, request)
@@ -57,7 +60,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
   {
     urls: ['*://*.bilibili.com/*playurl?*']
   },
-  ['blocking', 'requestHeaders']
+  ['requestHeaders', 'blocking']
 )
 
 // 从页面获取播放信息并解析
