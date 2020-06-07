@@ -1,97 +1,28 @@
-import * as log from './log'
-import * as bilibiliHelper from './bilibili'
+import { parseBlilibi } from './core/bilibili/index'
+import { addPort, removePort } from './helper/port-manager'
+import cache from './helper/cache'
 
 const extensionId = chrome.runtime.id
 
-const cache: Record<any, any> = {}
-// 可视化缓存
-window.printCache = () => {
-  console.log(cache)
+function onMessage(msg: any = {}) {
+  parseBlilibi(msg)
 }
 
-const matchList: { [key: string]: RegExp } = {
-  bilibili: /\.bilibili\./
-}
-
-function matchWebsite(url: string) {
-  const keys = Object.keys(matchList)
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i]
-    if (matchList[key].test(url)) {
-      return key
-    }
-  }
-  return ''
-}
-
-function sendToTab(tabId: number, action: string, message?: any) {
-  chrome.tabs.sendMessage(tabId, { action, data: message })
-}
-
-function appendHeader(headers: any[], name: string, value: string) {
-  headers.push({ name, value })
-}
-
-// 截取playurl api 并解析
-chrome.webRequest.onBeforeSendHeaders.addListener(
-  request => {
-    const requestHeaders = request.requestHeaders
-    // 如果为插件请求添加 Referer，Origin
-    if (request.initiator && request.initiator.indexOf(extensionId) > -1) {
-      appendHeader(requestHeaders, 'Referer', 'https://www.bilibili.com')
-      appendHeader(requestHeaders, 'Origin', 'https://www.bilibili.com')
-      return { requestHeaders }
-    }
-    if (
-      request.tabId != -1 &&
-      !request.url.includes('requestFrom=bilibili-helper')
-    ) {
-      const tabId = request.tabId
-      const website = matchWebsite(request.url)
-      log.request(`[request] website:${website} tabId:${tabId}`, request)
-      bilibiliHelper.parseRequest(request).then(({ response, result }) => {
-        log.response(`[response] website:${website} tabId:${tabId}`, response)
-        log.success(`[toTab] website:${website} tabId:${tabId}`, result)
-        sendToTab(tabId, 'list', result)
-        cache[tabId] = result
-      })
-    }
-  },
-  {
-    urls: ['*://*.bilibili.com/*playurl?*']
-  },
-  ['requestHeaders', 'blocking']
-)
-
-// 从页面获取播放信息并解析
-chrome.extension.onMessage.addListener(
-  (message: common.Message, sender: any) => {
-    if (!message.action) throw new TypeError('message中必须有action字段')
-    const tabId = sender.tab.id
-    const website = matchWebsite(sender.url)
-    log.message(`[${message.action}] website:${website} tabId:${tabId}`, {
-      message,
-      sender
-    })
-    switch (message.action) {
-      case 'playinfo':
-        let result: any = {}
-        if (website === 'bilibili') {
-          result = bilibiliHelper.parse(message)
-        }
-        log.success(`[toTab] website:${website} tabId:${tabId}`, result)
-        sendToTab(tabId, 'list', result)
-        break
-      case 'ready':
-        if (cache[tabId]) sendToTab(tabId, 'list', cache[tabId])
-        break
-      default:
-        log.warning(`暂时没有处理该类型[${message.action}]的方法`)
-        break
-    }
-  }
-)
+chrome.extension.onConnect.addListener(function(port) {
+  if (port.sender.id !== extensionId) return
+  const tabId = port.sender.tab.id
+  addPort(tabId, port)
+  // 重新执行缓存内的方法，一般情况下解决连接慢于页面加载的一些关键事件
+  cache.resume(tabId)
+  port.onMessage.addListener(function(msg) {
+    msg.tabId = tabId
+    onMessage(msg)
+  })
+  port.onDisconnect.addListener(function(port) {
+    removePort(tabId)
+  })
+})
 
 chrome.tabs.onRemoved.addListener((tabId, moveInfo) => {
-  if (cache[tabId]) delete cache[tabId]
+  cache.remove(tabId)
 })

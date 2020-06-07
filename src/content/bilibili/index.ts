@@ -1,79 +1,40 @@
-import videoVue from './videoVue'
-import { getExtensionURL, sendMessage } from '../utils'
+import * as logger from '../../utils/logger'
+import BilibiliComic from './comic'
+import BilibiliVideo from './video'
 
 export default class Bilibili {
-  app: any
+  port!: chrome.runtime.Port
+  type!: 'comic' | 'video'
+  url!: string
 
-  constructor(type: string = 'video') {
-    if (type === 'video') {
-      this.app = videoVue
-    }
+  constructor(port: chrome.runtime.Port) {
+    this.port = port
+    this.url = location.href
+    this.init()
   }
 
   init() {
-    this.addview()
-  }
-
-  $mount(el: string | Element) {
-    if (this.app) this.app.$mount(el)
-  }
-
-  // 添加界面
-  addview() {
-    $('body').append('<div id="video-parser"></div>')
-    const cssURL = getExtensionURL('css/downloadView.css')
-    $('#video-parser').before(
-      `<link  rel="stylesheet" type="text/css" href="${cssURL}"/>`
-    )
-    $('#video-parser').load(
-      getExtensionURL('template/downloadView.html'),
-      (resonse, status, xhr) => {
-        if (status === 'success') {
-          console.log('添加下载界面成功！')
-          this.$mount('#video-parser')
-          this.parsePlayinfo()
-        }
-      }
-    )
+    this.getPageType()
+    this.load()
+    logger.success('[video-parser]', '脚本注入成功 ┏ (゜ω゜)=☞')
   }
 
   /**
-   * 解析本地视频信息并发送给背景页
+   * 获取页面类型
    */
-  parsePlayinfo() {
-    const playinfo_script = $('script:contains("__playinfo__")')
-    if (playinfo_script.length) {
-      const jsText = playinfo_script.eq(0).text()
-      const vInfo = jsText.substr(jsText.indexOf('{'), jsText.lastIndexOf('}'))
-      const playinfo = JSON.parse(vInfo)
-      sendMessage('playinfo', playinfo)
-    } else {
-      this.app.setTitle(this.getTitle())
-      setTimeout(() => {
-        sendMessage('ready')
-      }, 3000)
-    }
-  }
-  /**
-   * 获取视频标题
-   */
-  getTitle() {
-    let title = $('.media-wrapper h1').text() || $('.video-title .tit').text()
-    if ($('#multi_page').length && $('.list-box').length) {
-      const subTitle = $('.list-box li.on a').attr('title')
-      if (subTitle) title += subTitle
-    }
-    return title
+  getPageType() {
+    const isComic = this.url.includes('manga.bilibili.com/detail')
+    this.type = isComic ? 'comic' : 'video'
   }
 
   /**
-   * 设置数据
-   * @param data
+   * 加载
    */
-  setData(data: any) {
-    if (this.app) {
-      this.app.setTitle(this.getTitle())
-      this.app.setData(data)
+  load() {
+    if (this.type === 'comic') {
+      new BilibiliComic()
+    } else if (this.type === 'video') {
+      new BilibiliVideo(this.port)
     }
   }
 }

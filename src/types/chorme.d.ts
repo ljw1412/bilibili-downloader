@@ -11,4 +11,10 @@ declare namespace chrome.extension {
       sendResponse?: (response?: any) => void
     ): void
   }
+
+  export namespace onConnect {
+    export function addListener(fn: (port: chrome.runtime.Port) => void): void
+  }
+
+  export function connect(opitons: { name: string }): chrome.runtime.Port
 }

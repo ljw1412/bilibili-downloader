@@ -23,6 +23,102 @@ interface BatchDownloadItem {
   el: HTMLElement
 }
 
+/**
+ * 漫画索引数据解析类
+ */
+class IndexDataParser {
+  // 漫画id
+  seasonId: number
+  // 集数id
+  episodeId: number
+  // 索引头字节
+  head = [66, 73, 76, 73, 67, 79, 77, 73, 67]
+  headLength = this.head.length
+  // 加密的索引文件
+  dataIndex: string
+  // 密钥
+  key: Uint8Array
+
+  constructor(seasonId: number, episodeId: number, dataIndex: string) {
+    if (!this.isNumber(seasonId) || !this.isNumber(episodeId)) {
+      throw new TypeError(
+        '[Indexer] Both seasonId and episodeId should be number.'
+      )
+    } else {
+      this.seasonId = seasonId
+      this.episodeId = episodeId
+      this.dataIndex = dataIndex
+      this.key = this.getKey()
+    }
+  }
+
+  isNumber(value: any) {
+    return 'number' == typeof value
+  }
+
+  dataIndexToU8Array(dataIndex: string) {
+    let str
+    try {
+      str = atob(dataIndex.split(',')[1] || dataIndex)
+    } catch (error) {
+      str = dataIndex
+    }
+
+    const arrayBuffer = new ArrayBuffer(str.length)
+    const uint8Array = new Uint8Array(arrayBuffer)
+
+    for (let i = 0; i < str.length; i++) {
+      uint8Array[i] = str.charCodeAt(i)
+    }
+
+    return uint8Array
+  }
+
+  checkValid(uint8Array: Uint8Array) {
+    for (let i = 0; i < this.headLength; i++) {
+      if (uint8Array[i] !== this.head[i]) {
+        return false
+      }
+    }
+    return true
+  }
+
+  getKey() {
+    const n = new Uint8Array(new ArrayBuffer(8))
+    n[0] = this.episodeId
+    n[1] = this.episodeId >> 8
+    n[2] = this.episodeId >> 16
+    n[3] = this.episodeId >> 24
+    n[4] = this.seasonId
+    n[5] = this.seasonId >> 8
+    n[6] = this.seasonId >> 16
+    n[7] = this.seasonId >> 24
+    return n
+  }
+
+  offset(uint8Array: Uint8Array, key = this.key) {
+    for (let n = 0; n < uint8Array.length; n++)
+      uint8Array[n] = uint8Array[n] ^ key[n % 8]
+  }
+
+  parse() {
+    let uint8Array = this.dataIndexToU8Array(this.dataIndex)
+    if (!uint8Array.length || !this.checkValid(uint8Array)) {
+      throw new TypeError('[Indexer] Invalid index data.')
+    }
+    uint8Array = uint8Array.slice(this.headLength)
+    this.offset(uint8Array)
+    var zip = new JSZip()
+    return zip.loadAsync(uint8Array).then(zip => {
+      const dat = zip.files['index.dat']
+      if (!dat) {
+        throw new Error('[Indexer] Can not find file "' + uint8Array + '".')
+      }
+      return dat.async('text')
+    })
+  }
+}
+
 export default class BilibiliComic {
   baseUrl = 'https://manga.bilibili.com/twirp/comic.v1.Comic'
   comicId: number
@@ -32,7 +128,9 @@ export default class BilibiliComic {
   isDownload = false
   quality = ''
 
-  constructor() {}
+  constructor() {
+    this.init()
+  }
 
   // 增加章节遮罩
   addButtonMask() {
@@ -165,8 +263,6 @@ export default class BilibiliComic {
     }, 500)
   }
 
-  setData() {}
-
   fetchIndex({ name, cid, eid, isAll, el }: FetchIndexOptions) {
     return fetch(`${this.baseUrl}/GetImageIndex?device=pc&platform=web`, {
       method: 'Post',
@@ -292,98 +388,5 @@ export default class BilibiliComic {
           saveAs(content, `${this.comicName}.zip`)
         })
     }
-  }
-}
-
-class IndexDataParser {
-  // 漫画id
-  seasonId: number
-  // 集数id
-  episodeId: number
-  // 索引头字节
-  head = [66, 73, 76, 73, 67, 79, 77, 73, 67]
-  headLength = this.head.length
-  // 加密的索引文件
-  dataIndex: string
-  // 密钥
-  key: Uint8Array
-
-  constructor(seasonId: number, episodeId: number, dataIndex: string) {
-    if (!this.isNumber(seasonId) || !this.isNumber(episodeId)) {
-      throw new TypeError(
-        '[Indexer] Both seasonId and episodeId should be number.'
-      )
-    } else {
-      this.seasonId = seasonId
-      this.episodeId = episodeId
-      this.dataIndex = dataIndex
-      this.key = this.getKey()
-    }
-  }
-
-  isNumber(value: any) {
-    return 'number' == typeof value
-  }
-
-  dataIndexToU8Array(dataIndex: string) {
-    let str
-    try {
-      str = atob(dataIndex.split(',')[1] || dataIndex)
-    } catch (error) {
-      str = dataIndex
-    }
-
-    const arrayBuffer = new ArrayBuffer(str.length)
-    const uint8Array = new Uint8Array(arrayBuffer)
-
-    for (let i = 0; i < str.length; i++) {
-      uint8Array[i] = str.charCodeAt(i)
-    }
-
-    return uint8Array
-  }
-
-  checkValid(uint8Array: Uint8Array) {
-    for (let i = 0; i < this.headLength; i++) {
-      if (uint8Array[i] !== this.head[i]) {
-        return false
-      }
-    }
-    return true
-  }
-
-  getKey() {
-    const n = new Uint8Array(new ArrayBuffer(8))
-    n[0] = this.episodeId
-    n[1] = this.episodeId >> 8
-    n[2] = this.episodeId >> 16
-    n[3] = this.episodeId >> 24
-    n[4] = this.seasonId
-    n[5] = this.seasonId >> 8
-    n[6] = this.seasonId >> 16
-    n[7] = this.seasonId >> 24
-    return n
-  }
-
-  offset(uint8Array: Uint8Array, key = this.key) {
-    for (let n = 0; n < uint8Array.length; n++)
-      uint8Array[n] = uint8Array[n] ^ key[n % 8]
-  }
-
-  parse() {
-    let uint8Array = this.dataIndexToU8Array(this.dataIndex)
-    if (!uint8Array.length || !this.checkValid(uint8Array)) {
-      throw new TypeError('[Indexer] Invalid index data.')
-    }
-    uint8Array = uint8Array.slice(this.headLength)
-    this.offset(uint8Array)
-    var zip = new JSZip()
-    return zip.loadAsync(uint8Array).then(zip => {
-      const dat = zip.files['index.dat']
-      if (!dat) {
-        throw new Error('[Indexer] Can not find file "' + uint8Array + '".')
-      }
-      return dat.async('text')
-    })
   }
 }

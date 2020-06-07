@@ -1,4 +1,9 @@
-import { formatDuration, formatFileSize, getFileName, getExt } from '../uitls'
+import {
+  formatDuration,
+  formatFileSize,
+  getFileName,
+  getExt
+} from '../../../utils/assist'
 
 const videoQualityMap: Record<number, string> = {
   116: '1080P60',
@@ -17,7 +22,7 @@ const audioQualityMap: Record<number, string> = {
   30216: '低质量'
 }
 
-export default class VideoParser implements bilibili.ProcessedData {
+class VideoParser implements bilibili.ProcessedData {
   playInfo: bilibili.PlayInfo
   version = 0
   duration: string
@@ -103,4 +108,18 @@ export default class VideoParser implements bilibili.ProcessedData {
       audioList: this.audioList
     }
   }
+}
+
+/**
+ * 解析播放信息
+ * @param playInfo 播放信息
+ */
+export const parsePlayInfo = (message: bilibili.MessageData) => {
+  const playInfo: bilibili.PlayInfo = message.data
+  if (playInfo.dash) {
+    return new VideoParser(playInfo, 2).parse()
+  } else if (playInfo.durl) {
+    return new VideoParser(playInfo, 1).parse()
+  }
+  return {}
 }

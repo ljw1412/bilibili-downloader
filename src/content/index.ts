@@ -1,19 +1,11 @@
-import Bilibili from './bilibili'
-import BilibiliComic from './bilibili/comic'
+import Bilibili from './bilibili/index'
 
-let bilibili: Bilibili | BilibiliComic
-if (location.href.includes('manga.bilibili.com/detail')) {
-  bilibili = new BilibiliComic()
-} else {
-  bilibili = new Bilibili()
-}
+const loaders = [{ test: /bilibili.com/, Loader: Bilibili }]
+
+const port = chrome.extension.connect({ name: 'video-parse' })
 ;(function() {
-  bilibili.init()
+  loaders.forEach(item => {
+    if (!item.test.test(location.href)) return
+    new item.Loader(port)
+  })
 })()
-
-chrome.extension.onMessage.addListener(
-  (message: bilibili.ProcessedData, sender: chrome.runtime.MessageSender) => {
-    console.log('video-parser:', message)
-    bilibili.setData(message)
-  }
-)
