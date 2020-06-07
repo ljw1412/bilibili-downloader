@@ -269,7 +269,7 @@ export default class BilibiliVideo {
   .then(json => {
     const data = json.result || json.data
     const bridge = document.querySelector('#video-parser-data')
-    bridge.innerHTML = JSON.stringify({data,url:'${url}'})
+    bridge.innerHTML = JSON.stringify({data,url:'${url}',info:window.__INITIAL_STATE__})
     bridge.dispatchEvent(new Event('fetch_response'))
   })`
     document.body.appendChild(script)
@@ -282,6 +282,9 @@ export default class BilibiliVideo {
     const cssURL = getExtensionURL('css/downloadView.css')
     el.before(`<link  rel="stylesheet" type="text/css" href="${cssURL}"/>`)
     el.after(`<div id="video-parser-data" style="display:none;"></div>`)
+    $('head').append(
+      `<script id="video-parser-info">document.querySelector('#video-parser-info').innerHTML=JSON.stringify(window.__INITIAL_STATE__)</script>`
+    )
     el.load(
       getExtensionURL('template/downloadView.html'),
       (resonse, status, xhr) => {
@@ -308,9 +311,10 @@ export default class BilibiliVideo {
       const jsText = playinfo_script.eq(0).text()
       const vInfo = jsText.substr(jsText.indexOf('{'), jsText.lastIndexOf('}'))
       const playinfo = JSON.parse(vInfo)
+      playinfo.info = JSON.parse(
+        document.querySelector('#video-parser-info').innerHTML || '{}'
+      )
       this.postMessage(buildMsg({ message: 'local_playinfo', data: playinfo }))
-    } else {
-      this.app.setTitle(this.getTitle())
     }
   }
   /**
@@ -322,6 +326,7 @@ export default class BilibiliVideo {
       const subTitle = $('.list-box li.on a').attr('title')
       if (subTitle) title += subTitle
     }
+    logger.success('[video-parser]', `使用备用方案获取本地标题:${title}`)
     return title
   }
 
@@ -331,7 +336,7 @@ export default class BilibiliVideo {
    */
   setData(data: any) {
     if (this.app) {
-      this.app.setTitle(this.getTitle())
+      this.app.setTitle(data.title || this.getTitle())
       this.app.setData(data)
     }
   }

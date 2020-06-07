@@ -28,10 +28,25 @@ chrome.webRequest.onCompleted.addListener(
   ['responseHeaders']
 )
 
+function getTitle(info: any) {
+  if (info) {
+    if (info.h1Title) return info.h1Title
+    if (info.p || info.p === '') {
+      const { videos, title, pages } = info.videoData
+      if (videos === 1) return title
+      const p = info.p || 1
+      const page = pages.find((page: any) => page.page == p)
+      if (page) return `${title}P${p}：${page.part}`
+    }
+  }
+  return null
+}
+
 function postList(port: chrome.runtime.Port, data: any, tabId: number) {
-  const result = parsePlayInfo(data)
-  port.postMessage({ action: 'list', data: result })
-  logger.success(`[toTab] website:bilibili tabId:${tabId}`, result)
+  const result = parsePlayInfo(data) as Record<string, any>
+  const massage = { action: 'list', data: result, title: getTitle(data.info) }
+  port.postMessage(massage)
+  logger.success(`[toTab] website:bilibili tabId:${tabId}`, massage)
 }
 
 export function parseBlilibi(msg: common.Message) {
