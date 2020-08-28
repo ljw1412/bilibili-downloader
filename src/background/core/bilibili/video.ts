@@ -6,6 +6,7 @@ import {
 } from '../../../utils/assist'
 
 const videoQualityMap: Record<number, string> = {
+  120: '4K',
   116: '1080P60',
   112: '1080P+',
   80: '1080P',
