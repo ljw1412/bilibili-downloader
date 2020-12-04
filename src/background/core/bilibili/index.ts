@@ -18,7 +18,7 @@ function fecthInTab(tabId: number, url: string) {
 chrome.webRequest.onCompleted.addListener(
   detail => {
     const { tabId, url } = detail
-    if (!detail.url.includes('requestFrom=bilibili-helper')) {
+    if (!url.includes('requestFrom=bilibili-helper')) {
       fecthInTab(tabId, url)
     }
   },

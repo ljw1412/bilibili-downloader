@@ -264,6 +264,7 @@ export default class BilibiliVideo {
     url += (url.includes('?') ? '&' : '?') + 'requestFrom=bilibili-helper'
 
     const script = document.createElement('script')
+    script.dataset.name = 'video-parser'
     script.innerHTML = `fetch('${url}', { credentials: 'include' })
   .then(res => res.json())
   .then(json => {
@@ -281,10 +282,11 @@ export default class BilibiliVideo {
     const el = $('#video-parser')
     const cssURL = getExtensionURL('css/downloadView.css')
     el.before(`<link  rel="stylesheet" type="text/css" href="${cssURL}"/>`)
-    el.after(`<div id="video-parser-data" style="display:none;"></div>`)
-    $('head').append(
-      `<script id="video-parser-info">document.querySelector('#video-parser-info').innerHTML=JSON.stringify(window.__INITIAL_STATE__)</script>`
-    )
+    $('head')
+      .append(
+        `<script id="video-parser-info">document.querySelector('#video-parser-info').innerHTML=JSON.stringify(window.__INITIAL_STATE__)</script>`
+      )
+      .append(`<script id="video-parser-data"></script>`)
     el.load(
       getExtensionURL('template/downloadView.html'),
       (resonse, status, xhr) => {
