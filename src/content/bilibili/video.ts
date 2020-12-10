@@ -215,6 +215,7 @@ export default class BilibiliVideo {
             )
           } else if (this.version === 2) {
             copyText(this.code)
+            logger.success('[video-parser]', '复制指令', this.code)
             this.showToast('下载指令已经复制到剪贴板！')
           }
         }

@@ -13,7 +13,9 @@ export function sendMessage(
 
 export function copyText(str: string) {
   var text = $(
-    '<textarea style="width: 0;height: 0;" id="copy_tmp">' + str + '</textarea>'
+    '<textarea style="width: 1px;height: 1px;" id="copy_tmp">' +
+      str +
+      '</textarea>'
   )
   $('body').append(text)
   text.select()
