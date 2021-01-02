@@ -266,14 +266,14 @@ export default class BilibiliVideo {
 
     const script = document.createElement('script')
     script.dataset.name = 'video-parser'
-    script.innerHTML = `fetch('${url}', { credentials: 'include' })
-  .then(res => res.json())
-  .then(json => {
+    script.innerHTML = `$ && $.ajax({url:'${url}',dataType:"json",xhrFields:{withCredentials:!0},
+success:function(json){
     const data = json.result || json.data
     const bridge = document.querySelector('#video-parser-data')
     bridge.innerHTML = JSON.stringify({data,url:'${url}',info:window.__INITIAL_STATE__})
     bridge.dispatchEvent(new Event('fetch_response'))
-  })`
+},
+error:function(e){}})`
     document.body.appendChild(script)
   }
 
