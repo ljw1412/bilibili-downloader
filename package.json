@@ -1,6 +1,6 @@
 {
   "name": "video-parser",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Parse online video.",
   "private": true,
   "scripts": {

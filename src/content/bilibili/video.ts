@@ -80,11 +80,15 @@ export default class BilibiliVideo {
             this.selectAudioList
           )
           const tsNameList: string[] = []
+          const delCodeList: string[] = []
+
           // 合并指令
           let mergeCommand = 'ffmpeg '
           let codeList = selectList.map(({ name, ext, url }) => {
             const tsName = ext ? name.replace(ext, '.ts') : name + '.ts'
             tsNameList.push(tsName)
+            delCodeList.push(`del ${tsName}`)
+            delCodeList.push(`del ${name}`)
             mergeCommand += `-i ${tsName} `
             return `aria2c -c --check-certificate=false --header="Origin: https://www.bilibili.com" --referer="https://www.bilibili.com"  --user-agent="Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4" -o "${name}" -x 16 -s 16 "${url}"\r\nffmpeg -y -i "${name}" -c copy -bsf:v h264_mp4toannexb -f mpegts ${tsName}\r\n`
           })
@@ -93,10 +97,12 @@ export default class BilibiliVideo {
             const tsListStr = tsNameList.join('|')
             mergeCommand = `ffmpeg -i "concat:${tsListStr}" -c copy "${this.safeVideoName}.mp4"\n`
           }
-          if (selectList.length > 1) codeList.push(mergeCommand)
-          return codeList.join('\r\n')
-          // }
-          return ''
+          if (selectList.length > 1) {
+            codeList.push(mergeCommand)
+            // codeList.push('echo "按任意键删除临时文件！！！！！"\r\npause')
+            codeList.push(delCodeList.join('\r\n'))
+          }
+          return 'chcp 65001\r\n' + codeList.join('\r\n') + '\r\n'
         }
       },
       methods: {
