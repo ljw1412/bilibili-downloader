@@ -28,7 +28,8 @@ export default class BilibiliVideo {
           title: '',
           message: '',
           isDisplayToast: false,
-          messageTimer: null
+          messageTimer: null,
+          isFullScreen: false,
         }
       },
       computed: {
@@ -103,7 +104,7 @@ export default class BilibiliVideo {
             codeList.push(delCodeList.join('\r\n'))
           }
           return 'chcp 65001\r\n' + codeList.join('\r\n') + '\r\n'
-        }
+        },
       },
       methods: {
         setTitle(title: string) {
@@ -112,7 +113,7 @@ export default class BilibiliVideo {
         setData({ action, data }: bilibili.ProcessedMessage) {
           if (action === 'list') {
             if (data.version === 1) {
-              data.videoList.forEach(item => {
+              data.videoList.forEach((item) => {
                 item.qualityStr = '分段' + item.order
                 item.isDownloading = false
                 item.isDownloaded = false
@@ -121,10 +122,10 @@ export default class BilibiliVideo {
                 item.blob = null
               })
             }
-            data.videoList.forEach(item => {
+            data.videoList.forEach((item) => {
               item.isActived = false
             })
-            data.audioList.forEach(item => {
+            data.audioList.forEach((item) => {
               item.isActived = false
             })
             this.data = data
@@ -141,7 +142,7 @@ export default class BilibiliVideo {
         onItemClick(item: bilibili.OutMedia, list: bilibili.OutMedia[]) {
           if (this.version === 2) {
             const isActived = item.isActived
-            list.forEach(item => {
+            list.forEach((item) => {
               this.$set(item, 'isActived', false)
             })
             item.isActived = isActived
@@ -163,7 +164,7 @@ export default class BilibiliVideo {
           list: bilibili.OutMedia[],
           onComplete = (blob: Blob, video: bilibili.OutMedia) => {}
         ) {
-          list.forEach(video => {
+          list.forEach((video) => {
             if (video.isDownloading || (video.isDownloaded && video.blob))
               return
             video.isDownloading = true
@@ -172,23 +173,23 @@ export default class BilibiliVideo {
               headers: {},
               mode: 'cors',
               cache: 'default',
-              referrerPolicy: 'no-referrer-when-downgrade'
+              referrerPolicy: 'no-referrer-when-downgrade',
             })
               .then(
                 fetchProgress({
                   defaultSize: video.bytes || 0,
-                  onProgress: progress => {
+                  onProgress: (progress) => {
                     if (progress > 1) progress = 1
                     video.progress = progress * 100
-                  }
+                  },
                 })
               )
               .then((response: Response) => response.blob())
-              .then(blob => {
+              .then((blob) => {
                 onComplete(blob, video)
                 video.isDownloading = false
               })
-              .catch(error => {
+              .catch((error) => {
                 console.error(error)
                 this.showToast('下载出错了/(ㄒoㄒ)/~~')
                 video.isFail = true
@@ -224,22 +225,22 @@ export default class BilibiliVideo {
             logger.success('[video-parser]', '复制指令', this.code)
             this.showToast('下载指令已经复制到剪贴板！')
           }
-        }
+        },
       },
       watch: {
         downloadedVideoList(list: bilibili.OutMedia[]) {
           if (list.length === 0) return
           if (list.length === this.videoList.length) {
             this.showToast('正在合并中，请稍后……')
-            FLV.mergeBlobs(list.map(item => item.blob)).then(
+            FLV.mergeBlobs(list.map((item) => item.blob)).then(
               (mergeBlob: Blob) => {
                 saveAs(mergeBlob, this.safeVideoName + list[0].ext)
                 this.showToast('合并完成！请慢用(｡･ω･｡)')
               }
             )
           }
-        }
-      }
+        },
+      },
     })
   }
 
@@ -255,6 +256,29 @@ export default class BilibiliVideo {
       }
       this.setData(msg)
     })
+    this.addFullScreenListener()
+  }
+
+  addFullScreenListener() {
+    const targetNode = document.getElementById('bilibili-player')
+
+    const config = { attributes: true }
+
+    const observer = new MutationObserver((mutationsList, observer) => {
+      for (let mutation of mutationsList) {
+        const { type, attributeName, target } = mutation
+        if (type === 'attributes' && attributeName === 'class') {
+          const isFullScreen = (target as HTMLElement).classList.contains(
+            'full-screen'
+          )
+          if (this.app) {
+            this.app.isFullScreen = isFullScreen
+          }
+        }
+      }
+    })
+
+    observer.observe(targetNode, config)
   }
 
   postMessage(msg: Object) {
@@ -301,7 +325,7 @@ error:function(e){}})`
           logger.success('[video-parser]', '添加下载界面成功！')
           this.$mount('#video-parser')
           // 监听数据请求的结果
-          $('#video-parser-data').on('fetch_response', e => {
+          $('#video-parser-data').on('fetch_response', (e) => {
             const data = JSON.parse(e.target.innerHTML)
             this.port.postMessage(buildMsg({ message: 'fetch_response', data }))
           })

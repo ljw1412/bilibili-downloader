@@ -1,6 +1,6 @@
 #video-parser {
   position: relative;
-  z-index: 100;
+  z-index: 150;
 }
 
 #video-parser * {

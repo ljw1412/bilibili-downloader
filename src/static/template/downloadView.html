@@ -1,4 +1,5 @@
-<div class="video-parser-button" :class="{'video-parser-button--no-shadow':isDisplayPopover}" @click="onButtonClick">
+<div v-show="!isFullScreen" class="video-parser-button" :class="{'video-parser-button--no-shadow':isDisplayPopover}"
+  @click="onButtonClick">
   <span v-if="!isDisplayPopover">下载<br />视频</span>
   <span v-else class="video-parser-button__close"></span>
 </div>
