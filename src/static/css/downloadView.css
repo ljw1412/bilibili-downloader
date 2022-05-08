@@ -18,7 +18,7 @@
   box-sizing: border-box;
   padding: 6px 0;
   background: #fff;
-  border: 1px solid #e7e7e7;
+  border: 1px solid var(--divider,#e7e7e7);
   box-shadow: 0 6px 10px 0 hsla(0, 0%, 72.9%, 0.3);
   border-radius: 2px;
   color: #212121;
@@ -82,10 +82,10 @@
   bottom: 20px;
   z-index: 98;
   width: 600px;
-  border: 1px solid #e7e7e7;
+  border: 1px solid var(--divider,#e7e7e7);
   border-radius: 2px 2px 2px 0;
   box-shadow: 0 6px 10px 0 hsla(0, 0%, 72.9%, 0.3);
-  background-color: #fff;
+  background-color: var(--bg,#fff);
   transform-origin: left bottom;
   overflow: hidden;
 }
@@ -93,7 +93,7 @@
 .video-parser-popover__header {
   padding: 10px;
   box-sizing: border-box;
-  border-bottom: 1px solid #e7e7e7;
+  border-bottom: 1px solid var(--divider,#e7e7e7);
 }
 
 .video-parser-popover__content {
@@ -166,6 +166,7 @@
 }
 
 .video-parser-popover__item:not(.video-parser-popover__item--actived):hover {
+  color: #ff85ad;
   background-color: #eaf4ff;
   border: 1px solid #73bed8;
 }
@@ -178,14 +179,14 @@
   height: 47px;
   box-sizing: border-box;
   padding-left: 48px;
-  border-top: 1px solid #e7e7e7;
+  border-top: 1px solid var(--divider,#e7e7e7);
 }
 
 .video-parser-popover__quality,
 .video-parser-popover__duration {
   padding: 0 10px;
   text-align: center;
-  border-right: 1px solid #e7e7e7;
+  border-right: 1px solid var(--divider,#e7e7e7);
 }
 
 .video-parser-popover__selected {

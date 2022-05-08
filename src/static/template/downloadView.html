@@ -14,7 +14,7 @@
       <div v-if="!videoList.length" class="video-parser-popover__loading">正在努力获取中……</div>
       <div class="video-parser-popover__videos">
         <div v-for="(item,index) of videoList" :key="index" class="video-parser-popover__item"
-          :class="{'video-parser-popover__item--actived':item.isActived}" :title="item.duration"
+          :class="{'video-parser-popover__item--actived':item.isActived}" :title="item.duration+' '+item.codecs"
           @click="onItemClick(item, videoList)">
           <span style="z-index: 1;" :style="item.progress===100?'color:#fff':''">{{ item.qualityStr }}</span>
           <span class="video-parser-popover__download-progress" :style="{right:(100 - item.progress)+'%'}"></span>
@@ -27,7 +27,7 @@
         <div class="video-parser-popover__type">音频</div>
         <div class="video-parser-popover__audios">
           <div v-for="(item,index) of audioList" :key="index" class="video-parser-popover__item"
-            :class="{'video-parser-popover__item--actived':item.isActived}" :title="item.duration"
+            :class="{'video-parser-popover__item--actived':item.isActived}" :title="item.duration+' '+item.codecs"
             @click="onItemClick(item, audioList)">
             <span>{{ item.qualityStr }}</span>
           </div>

@@ -1,5 +1,6 @@
 interface Window {
   getCurrentCache?: Function
+  getCurrentDataCache?: Function
   getCurrentPorts?: Function
   videoParse?: {
     port?: chrome.runtime.Port

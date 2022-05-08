@@ -1,6 +1,7 @@
 import { parseBlilibi } from './core/bilibili/index'
 import { addPort, removePort } from './helper/port-manager'
 import cache from './helper/cache'
+import * as dataCache from './helper/TabDataCache'
 
 const extensionId = chrome.runtime.id
 
@@ -25,4 +26,5 @@ chrome.extension.onConnect.addListener(function(port) {
 
 chrome.tabs.onRemoved.addListener((tabId, moveInfo) => {
   cache.remove(tabId)
+  dataCache.removeCache(tabId)
 })

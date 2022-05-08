@@ -11,6 +11,8 @@ const buildMsg = (msg: Record<string, any>) => {
 export default class BilibiliVideo {
   app: any
   port!: chrome.runtime.Port
+  titleObserver: MutationObserver
+  state = { loadedFullScreenListener: false, loadedCheckViewListener: false }
 
   constructor(port: chrome.runtime.Port) {
     this.port = port
@@ -20,6 +22,7 @@ export default class BilibiliVideo {
   }
 
   initVue() {
+    const that = this
     this.app = new Vue({
       data() {
         return {
@@ -111,7 +114,7 @@ export default class BilibiliVideo {
           this.title = title
         },
         setData({ action, data }: bilibili.ProcessedMessage) {
-          if (action === 'list') {
+          if (['list', 'cache_list'].includes(action)) {
             if (data.version === 1) {
               data.videoList.forEach((item) => {
                 item.qualityStr = '分段' + item.order
@@ -132,6 +135,11 @@ export default class BilibiliVideo {
           }
         },
         onButtonClick() {
+          if (!this.isDisplayPopover) {
+            if (this.title.includes('銀魂（僅限港澳台地區）：01-02 ')) {
+              this.setTitle(that.getTitle())
+            }
+          }
           this.isDisplayPopover = !this.isDisplayPopover
         },
         onSelectAllClick() {
@@ -248,6 +256,12 @@ export default class BilibiliVideo {
    * 添加监听
    */
   addListener() {
+    this.addMessageListener()
+    this.addFullScreenListener()
+    this.addCheckViewListener()
+  }
+
+  addMessageListener() {
     this.port.onMessage.addListener((msg, port) => {
       logger.success('[video-parser]', '接收数据', msg)
       if (msg.action === 'fetch') {
@@ -256,11 +270,12 @@ export default class BilibiliVideo {
       }
       this.setData(msg)
     })
-    this.addFullScreenListener()
+    logger.message('[video-parser] state', 'loadedMessageListener')
   }
 
   addFullScreenListener() {
     const targetNode = document.getElementById('bilibili-player')
+    if (!targetNode) return
 
     const config = { attributes: true }
 
@@ -273,12 +288,44 @@ export default class BilibiliVideo {
           )
           if (this.app) {
             this.app.isFullScreen = isFullScreen
+            if (isFullScreen) this.app.isDisplayPopover = false
           }
         }
       }
     })
 
     observer.observe(targetNode, config)
+    this.state.loadedFullScreenListener = true
+    logger.message('[video-parser] state', 'loadedFullScreenListener')
+  }
+
+  addCheckViewListener() {
+    const node = document.querySelector('title')
+    if (!node) return
+    let retry = 0
+    const check = () => {
+      if (node.innerHTML.includes('（僅限')) {
+        if (!$('#video-parser').length) {
+          logger.message('[video-parser] view', '港澳台重定向，界面重新加载！')
+          if (this.app) this.app.$destroy()
+          this.initVue()
+          this.addview()
+          retry = 99
+        }
+      } else {
+        logger.message('[video-parser] check:' + retry, '按钮已添加!')
+      }
+    }
+    const timer = setInterval(() => {
+      if (retry > 5) {
+        clearInterval(timer)
+        return
+      }
+      check()
+      retry++
+    }, 3000)
+
+    logger.message('[video-parser] state', 'loadedCheckViewListener')
   }
 
   postMessage(msg: Object) {
@@ -324,11 +371,21 @@ error:function(e){}})`
         if (status === 'success') {
           logger.success('[video-parser]', '添加下载界面成功！')
           this.$mount('#video-parser')
+          this.port.postMessage(buildMsg({ message: 'get_cache' }))
+          const parserDataEl = $('#video-parser-data')
           // 监听数据请求的结果
-          $('#video-parser-data').on('fetch_response', (e) => {
-            const data = JSON.parse(e.target.innerHTML)
-            this.port.postMessage(buildMsg({ message: 'fetch_response', data }))
+          parserDataEl.on('fetch_response', (e) => {
+            try {
+              const data = JSON.parse(e.target.innerHTML)
+              this.port.postMessage(
+                buildMsg({ message: 'fetch_response', data })
+              )
+              console.log(data)
+            } catch (error) {
+              logger.error('[video-parser]', error)
+            }
           })
+
           this.parsePlayinfo()
         }
       }
@@ -354,11 +411,15 @@ error:function(e){}})`
    * 获取视频标题
    */
   getTitle() {
-    let title = $('.media-wrapper h1').text() || $('.video-title .tit').text()
-    if ($('#multi_page').length && $('.list-box').length) {
-      const subTitle = $('.list-box li.on a').attr('title')
-      if (subTitle) title += subTitle
+    let title = $('.media-wrapper h1').text()
+    if (!title || title.includes('銀魂（僅限港澳台地區）：01-02')) {
+      title = $('.media-wrapper .media-title').text()
+      if ($('#eplist_module').length) {
+        const subTitle = $('#eplist_module li.cursor .ep-title').attr('title')
+        if (subTitle) title += '：' + subTitle
+      }
     }
+
     logger.success('[video-parser]', `使用备用方案获取本地标题:${title}`)
     return title
   }

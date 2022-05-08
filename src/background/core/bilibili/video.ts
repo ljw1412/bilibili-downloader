@@ -2,7 +2,7 @@ import {
   formatDuration,
   formatFileSize,
   getFileName,
-  getExt
+  getExt,
 } from '../../../utils/assist'
 
 const videoQualityMap: Record<number, string> = {
@@ -15,12 +15,12 @@ const videoQualityMap: Record<number, string> = {
   32: '480P',
   16: '360P',
   15: '360P',
-  0: '自动'
+  0: '自动',
 }
 const audioQualityMap: Record<number, string> = {
   30280: '高质量',
   30232: '中质量',
-  30216: '低质量'
+  30216: '低质量',
 }
 
 class VideoParser implements bilibili.ProcessedData {
@@ -64,7 +64,7 @@ class VideoParser implements bilibili.ProcessedData {
       size: formatFileSize(item.size),
       bytes: item.size,
       quality: this.quality,
-      qualityStr: this.qualityStr
+      qualityStr: this.qualityStr,
     }))
   }
 
@@ -92,7 +92,8 @@ class VideoParser implements bilibili.ProcessedData {
         // 错误的
         size: formatFileSize(item.bandwidth * 128),
         quality: item.id,
-        qualityStr: qualityMap[item.id]
+        qualityStr: qualityMap[item.id],
+        codecs: item.codecs,
       }))
     }
     this.videoList = parseMedia(dash.video, videoQualityMap)
@@ -106,7 +107,7 @@ class VideoParser implements bilibili.ProcessedData {
       quality: this.quality,
       qualityStr: this.qualityStr,
       videoList: this.videoList,
-      audioList: this.audioList
+      audioList: this.audioList,
     }
   }
 }
